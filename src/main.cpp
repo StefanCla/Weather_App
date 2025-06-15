@@ -5,18 +5,13 @@
 #include "network_control.h"
 #include "time_control.h"
 
-
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <iostream>
-
 ScreenControl* screen_control = nullptr;
 TimeControl* time_control = nullptr;
 NetworkControl* network_control = nullptr;
 
 std::map<int, std::string> WeatherMap;
 
+//WMO - Sky Type
 void SetupWeatherMap()
 {
     WeatherMap.insert({0, "Clear Sky"});
@@ -65,8 +60,8 @@ void setup() {
     screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
     screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
-    screen_control->DisplayTemprature(network_control->GetTemprature(), 0, 16);
-    int WeatherCode = network_control->GetWeatherCode();
+    screen_control->DisplayTemprature(network_control->GetTemprature3(), 0, 16);
+    int WeatherCode = network_control->GetWeatherCode3();
     screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 0, 36);
 
     screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
@@ -94,8 +89,8 @@ void loop() {
         screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
         screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
-        screen_control->DisplayTemprature(network_control->GetTemprature(), 0, 16);
-        int WeatherCode = network_control->GetWeatherCode();
+        screen_control->DisplayTemprature(network_control->GetTemprature3(), 0, 16);
+        int WeatherCode = network_control->GetWeatherCode3();
         screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 0, 36);
 
         screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);

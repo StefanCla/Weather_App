@@ -1,9 +1,7 @@
 #include "network_control.h"
 #include "network_defines.h"    //Not added to Github on purpose
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <iostream>
+
+#include <time.h>
 
 NetworkControl::NetworkControl()
 {
@@ -65,7 +63,7 @@ String NetworkControl::HttpGETRequest(const char* URL)
 
 bool NetworkControl::GetWeatherJSON()
 {
-    String JSON = HttpGETRequest(m_WeatherURL);
+    String JSON = HttpGETRequest(m_WeatherURL3);
 
     DeserializationError Err = deserializeJson(m_JsonDoc, JSON);
     
@@ -73,6 +71,10 @@ bool NetworkControl::GetWeatherJSON()
     {
         return false;
     }
+
+    m_Times = m_JsonDoc["minutely_15"]["time"];
+    m_Temps = m_JsonDoc["minutely_15"]["temperature_2m"];
+    m_Codes = m_JsonDoc["minutely_15"]["weather_code"];
 
     return true;
 }
@@ -85,4 +87,46 @@ const float NetworkControl::GetTemprature()
 const int NetworkControl::GetWeatherCode()
 {
     return m_JsonDoc["current"]["weather_code"];
+}
+
+const float NetworkControl::GetTemprature2(const time_t& UnixTime)
+{
+    int iteration = 0;
+    for(iteration = (m_Times.size() - 1); iteration >= 0; iteration--)
+    {
+        time_t Time = m_Times[iteration];
+        if(UnixTime > Time)
+        {
+            break;
+        }
+    }
+
+    float Temp = m_Temps[iteration];
+    return Temp;
+}
+
+const int NetworkControl::GetWeatherCode2(const time_t& UnixTime)
+{
+    int iteration = 0;
+    for(iteration = (m_Times.size() - 1); iteration >= 0; iteration--)
+    {
+        time_t Time = m_Times[iteration];
+        if(UnixTime > Time)
+        {
+            break;
+        }
+    }
+
+    int Code = m_Codes[iteration];
+    return Code;
+}
+
+const float NetworkControl::GetTemprature3()
+{
+    return m_JsonDoc["minutely_15"]["temperature_2m"][0];
+}
+
+const int NetworkControl::GetWeatherCode3()
+{
+    return m_JsonDoc["minutely_15"]["weather_code"][0];
 }
