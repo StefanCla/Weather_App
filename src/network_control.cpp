@@ -1,4 +1,9 @@
 #include "network_control.h"
+#include "network_defines.h"    //Not added to Github on purpose
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <iostream>
 
 NetworkControl::NetworkControl()
 {
@@ -15,7 +20,7 @@ NetworkControl::~NetworkControl()
 
 void NetworkControl::Init()
 {
-    WiFi.begin(m_Ssid, m_Password);
+    WiFi.begin(SSID, PASS);
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");

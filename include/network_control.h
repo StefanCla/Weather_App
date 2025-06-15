@@ -21,16 +21,13 @@ public:
     const int GetWeatherCode();
 
 private:
-    const char* m_Ssid       = "";
-    const char* m_Password   = "";
-
     //NTP server
     const char* m_NtpServer = "pool.ntp.org";
     const long  m_GmtOffset_sec = 0; //UK
     const int   m_DaylightOffset_sec = 3600;
 
     //Weather
-    const char* m_WeatherURL = "";
+    const char* m_WeatherURL = "http://api.open-meteo.com/v1/forecast?latitude=50.799&longitude=-1.0913&current=temperature_2m,weather_code&timezone=GMT&forecast_days=1";
 
     JsonDocument m_JsonDoc;
 };

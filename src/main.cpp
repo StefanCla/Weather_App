@@ -5,6 +5,12 @@
 #include "network_control.h"
 #include "time_control.h"
 
+
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <iostream>
+
 ScreenControl* screen_control = nullptr;
 TimeControl* time_control = nullptr;
 NetworkControl* network_control = nullptr;
