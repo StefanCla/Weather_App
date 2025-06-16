@@ -23,8 +23,6 @@ public:
 
     void CorrectTime();
 
-    time_t m_ShortTimer;
-
 private:
     NetworkControl* m_NetworkControl = nullptr;
 

@@ -62,14 +62,6 @@ void ScreenControl::DisplayDate(const tm& timeinfo)
     m_Display->println(buffer);
 }
 
-void ScreenControl::DisplayTest()
-{
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
-    m_Display->setCursor(0,16);
-    m_Display->println("HEY");
-}
-
 void ScreenControl::DisplayClearScreen()
 {
     m_Display->clearDisplay();
@@ -141,13 +133,13 @@ void ScreenControl::DisplayTimeHrMin(const tm& timeinfo, int16_t x, int16_t y, b
     m_Display->println(buffer);
 }
 
-void ScreenControl::DisplayIteration(int16_t x, int16_t y, bool bFromRightSide)
+void ScreenControl::DisplayIteration(const int Iterate, int16_t x, int16_t y, bool bFromRightSide)
 {
     if(bFromRightSide)
     {
         int16_t x1, y1;
         uint16_t w, h;
-        std::string TempString = std::to_string(m_IterateCounter);
+        std::string TempString = std::to_string(Iterate);
         m_Display->getTextBounds(TempString.c_str(), 0, 0, &x1, &y1, &w, &h);
 
         x = SCREEN_WIDTH - (w + x);
@@ -156,9 +148,7 @@ void ScreenControl::DisplayIteration(int16_t x, int16_t y, bool bFromRightSide)
     m_Display->setCursor(x, y);
     m_Display->setTextSize(1);
     m_Display->setTextColor(WHITE);
-    m_Display->println(m_IterateCounter);
-
-    m_IterateCounter++;
+    m_Display->println(Iterate);
 }
 
 void ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t x, int16_t y)
@@ -169,33 +159,9 @@ void ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t x
     m_Display->println(WeatherCode.c_str());
 }
 
-void ScreenControl::DisplayError()
-{
-    std::string ErrorMsg = "An Error has occured.";
-    std::string RetryMsg = "Retrying in 10 sec.";
-
-    m_Display->setCursor(0, 16);
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
-    m_Display->println(ErrorMsg.c_str());
-
-    m_Display->setCursor(0, 32);
-    m_Display->println(RetryMsg.c_str());
-}
-
 void ScreenControl::Display()
 {
     m_Display->display();
-}
-
-void ScreenControl::DisplayConnecting()
-{
-    std::string ConnectMsg = "Connecting to WiFi..";
-
-    m_Display->setCursor(0, 0);
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
-    m_Display->println(ConnectMsg.c_str());
 }
 
 void ScreenControl::DisplayMessage(const char* Msg, int16_t x, int16_t y)

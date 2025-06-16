@@ -1,13 +1,12 @@
 #include "network_control.h"
 #include "network_defines.h"    //Not added to Github on purpose
 
-#include <time.h>
-
 NetworkControl::NetworkControl()
 {
     Serial.begin(115200);
 
     m_TimeStruct = new tm();
+    m_JSON = new String("{}");
 }
 
 NetworkControl::~NetworkControl()
@@ -16,8 +15,8 @@ NetworkControl::~NetworkControl()
     WiFi.mode(WIFI_OFF);
 
     delete m_TimeStruct;
+    delete m_JSON;
 }
-
 
 bool NetworkControl::TryConnecting()
 {
@@ -65,7 +64,7 @@ tm NetworkControl::GetNTPTime()
     return timeinfo;
 }
 
-String NetworkControl::HttpGETRequest(const char* URL)
+void NetworkControl::HttpGETRequest(const char* URL)
 {
     WiFiClient Client;
     HTTPClient Http;
@@ -74,27 +73,24 @@ String NetworkControl::HttpGETRequest(const char* URL)
 
     int ReponseCode = Http.GET();
 
-    String JSON = "{}";
-
     if(ReponseCode > 0)
     {
-        JSON = Http.getString();
-    }
-    else
-    {
-        //Print error on screen
+        *m_JSON = Http.getString();
     }
 
     Http.end();
-
-    return JSON;
 }
 
 bool NetworkControl::GetWeatherJSON()
 {
-    String JSON = HttpGETRequest(m_WeatherURL);
+    HttpGETRequest(m_WeatherURL);
 
-    DeserializationError Err = deserializeJson(m_JsonDoc, JSON);
+    if(!m_JSON)
+    {
+        return false;
+    }
+
+    DeserializationError Err = deserializeJson(m_JsonDoc, *m_JSON);
     
     if(Err)
     {

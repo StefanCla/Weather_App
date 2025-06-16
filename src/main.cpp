@@ -1,12 +1,11 @@
 #include <Arduino.h>
 #include <map>
+#include <thread>
+#include <chrono>
 
 #include "screen_control.h"
 #include "network_control.h"
 #include "time_control.h"
-
-#include <thread>
-#include <chrono>
 
 ScreenControl* screen_control = nullptr;
 TimeControl* time_control = nullptr;
@@ -15,6 +14,7 @@ NetworkControl* network_control = nullptr;
 std::map<int, std::string> WeatherMap;
 
 int Index = 0;
+int QuarterIterateCounter = 0; //For debug
 bool bHasError = false;
 
 //WMO - Sky Type
@@ -125,6 +125,7 @@ void loop() {
             {
                 bHasError = false;
                 Index = 0;
+                QuarterIterateCounter++;
             }
 
             network_control->Disconnect();
@@ -144,7 +145,7 @@ void loop() {
         screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
         screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
 
-        screen_control->DisplayIteration(0, 36, true);
+        screen_control->DisplayIteration(QuarterIterateCounter, 0, 36, true);
 
         Index++;
         if(Index > 5)

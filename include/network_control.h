@@ -10,12 +10,11 @@ public:
     NetworkControl();
     ~NetworkControl();
 
-    void Init();
     bool TryConnecting();
     void Disconnect();
 
     tm GetNTPTime();
-    String HttpGETRequest(const char* URL);
+    void HttpGETRequest(const char* URL);
 
     bool GetWeatherJSON();
 
@@ -35,6 +34,8 @@ private:
     const char* m_WeatherURL = "http://api.open-meteo.com/v1/forecast?latitude=50.799&longitude=-1.0913&hourly=temperature_2m,weather_code&timezone=Europe%2FLondon&timeformat=unixtime&forecast_hours=6&cell_selection=nearest";
 
     JsonDocument m_JsonDoc;
+    String* m_JSON = nullptr;
+
     tm* m_TimeStruct = nullptr;
 
 };
