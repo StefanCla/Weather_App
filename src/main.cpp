@@ -5,11 +5,17 @@
 #include "network_control.h"
 #include "time_control.h"
 
+#include <thread>
+#include <chrono>
+
 ScreenControl* screen_control = nullptr;
 TimeControl* time_control = nullptr;
 NetworkControl* network_control = nullptr;
 
 std::map<int, std::string> WeatherMap;
+
+int Index = 0;
+bool bHasError = false;
 
 //WMO - Sky Type
 void SetupWeatherMap()
@@ -45,57 +51,109 @@ void SetupWeatherMap()
 }
 
 void setup() {
-    network_control = new NetworkControl();
     screen_control = new ScreenControl();
+    network_control = new NetworkControl();
     time_control = new TimeControl(network_control);
 
     SetupWeatherMap();
 
-    if(!network_control->GetWeatherJSON())
+    screen_control->DisplayMessage("Connecting to WiFi..", 0, 0);
+    screen_control->Display();
+
+    if(!network_control->TryConnecting())
     {
-        screen_control->DisplayError();
-        return;
+        screen_control->DisplayMessage("An Error has occured.", 0, 16);
+        bHasError = true;
     }
-
-    screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
-    screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
-
-    screen_control->DisplayTemprature(network_control->GetTemprature3(), 0, 16);
-    int WeatherCode = network_control->GetWeatherCode3();
-    screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 0, 36);
-
-    screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
-    screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
-
-    screen_control->DisplayIteration(0, 36, true);
-}
-
-void loop() {
-
-    time_control->Tick();
-
-    if(time_control->GetCurrentTime() >= time_control->GetQuarterTime())
+    else
     {
+        screen_control->DisplayClearScreen();
+
         time_control->CorrectTime();
         time_control->CalculateNextQuarter();
 
         if(!network_control->GetWeatherJSON())
         {
-            screen_control->DisplayError();
-            return;
+            screen_control->DisplayMessage("Failed obtaining JSON.", 0, 0);
+            screen_control->DisplayMessage("An Error has occured.", 0, 16);
+            bHasError = true;
+        }
+        else
+        {
+            bHasError = false;
         }
 
-        screen_control->DisplayClearScreen();
+        network_control->Disconnect();
+    }
+
+    screen_control->Display();
+}
+
+void loop() {
+
+    time_control->Tick();
+    
+    screen_control->DisplayClearScreen();
+
+    if((time_control->GetCurrentTime() >= time_control->GetQuarterTime()) || bHasError)
+    {
+        screen_control->DisplayMessage("Connecting to WiFi..", 0, 0);
+        screen_control->Display();
+
+        if(!network_control->TryConnecting())
+        {
+            screen_control->DisplayMessage("An Error has occured.", 0, 16);
+            screen_control->DisplayMessage("Retrying in 10 sec.", 0, 32);
+            bHasError = true;
+        }
+        else
+        {
+            screen_control->DisplayClearScreen();
+
+            time_control->CorrectTime();
+            time_control->CalculateNextQuarter();
+
+            if(!network_control->GetWeatherJSON())
+            {
+                screen_control->DisplayMessage("Failed obtaining JSON.", 0, 0);
+                screen_control->DisplayMessage("An Error has occured.", 0, 16);
+                screen_control->DisplayMessage("Retrying in 10 sec.", 0, 32);
+
+                bHasError = true;
+            }
+            else
+            {
+                bHasError = false;
+                Index = 0;
+            }
+
+            network_control->Disconnect();
+        }
+    }
+
+    if(!bHasError)
+    {
         screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
         screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
-        screen_control->DisplayTemprature(network_control->GetTemprature3(), 0, 16);
-        int WeatherCode = network_control->GetWeatherCode3();
+        screen_control->DisplayTemprature(network_control->GetTemprature(Index), 0, 16);
+        int WeatherCode = network_control->GetWeatherCode(Index);
         screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 0, 36);
+        screen_control->DisplayTimeHrMin(network_control->GetTime(Index), 0, 46, false);
 
         screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
         screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
 
         screen_control->DisplayIteration(0, 36, true);
+
+        Index++;
+        if(Index > 5)
+        {
+            Index = 0;
+        }
     }
+
+    screen_control->Display();
+
+    std::this_thread::sleep_for(std::chrono::seconds(10));
 }

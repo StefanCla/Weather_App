@@ -21,6 +21,11 @@ public:
     void DisplayWeekDay(const tm& timeinfo);
     void DisplayDate(const tm& timeinfo);
     void DisplayClearScreen();
+    void Display();
+
+    void DisplayMessage(const char* Msg, int16_t x, int16_t y);
+
+    void DisplayConnecting();
 
     void DisplayDrawCelcius(int16_t x, int16_t y);
     void DisplayTemprature(float Temprature, int16_t x, int16_t y);
@@ -34,4 +39,5 @@ public:
 
 private:
     int m_IterateCounter = 0;
+
 };

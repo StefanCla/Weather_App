@@ -7,23 +7,52 @@ NetworkControl::NetworkControl()
 {
     Serial.begin(115200);
 
-    Init();
+    m_TimeStruct = new tm();
 }
 
 NetworkControl::~NetworkControl()
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
+
+    delete m_TimeStruct;
 }
 
-void NetworkControl::Init()
+
+bool NetworkControl::TryConnecting()
 {
+    int Attempts = 0;
+    bool bIsConnected = false;
+
     WiFi.begin(SSID, PASS);
-    while (WiFi.status() != WL_CONNECTED) {
+    while ((WiFi.status() != WL_CONNECTED)) 
+    {
         delay(500);
-        Serial.print(".");
+
+        if(Attempts > m_MaxConnectAttempt)
+        {
+            break;
+        }
+
+        Attempts++;
     }
-    Serial.println(" CONNECTED");
+
+    if(WiFi.status() == WL_CONNECTED)
+    { 
+        bIsConnected = true;
+    }
+    else
+    {
+        Disconnect();
+    }
+
+    return bIsConnected;
+}
+
+void NetworkControl::Disconnect()
+{
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
 }
 
 tm NetworkControl::GetNTPTime()
@@ -63,7 +92,7 @@ String NetworkControl::HttpGETRequest(const char* URL)
 
 bool NetworkControl::GetWeatherJSON()
 {
-    String JSON = HttpGETRequest(m_WeatherURL3);
+    String JSON = HttpGETRequest(m_WeatherURL);
 
     DeserializationError Err = deserializeJson(m_JsonDoc, JSON);
     
@@ -72,61 +101,22 @@ bool NetworkControl::GetWeatherJSON()
         return false;
     }
 
-    m_Times = m_JsonDoc["minutely_15"]["time"];
-    m_Temps = m_JsonDoc["minutely_15"]["temperature_2m"];
-    m_Codes = m_JsonDoc["minutely_15"]["weather_code"];
-
     return true;
 }
 
-const float NetworkControl::GetTemprature()
+const tm& NetworkControl::GetTime(const int Index)
 {
-    return m_JsonDoc["current"]["temperature_2m"];
+    time_t UnixTime = m_JsonDoc["hourly"]["time"][Index];
+    *m_TimeStruct = *localtime(&UnixTime);
+    return *m_TimeStruct;
 }
 
-const int NetworkControl::GetWeatherCode()
+const float NetworkControl::GetTemprature(const int Index)
 {
-    return m_JsonDoc["current"]["weather_code"];
+    return m_JsonDoc["hourly"]["temperature_2m"][Index];
 }
 
-const float NetworkControl::GetTemprature2(const time_t& UnixTime)
+const int NetworkControl::GetWeatherCode(const int Index)
 {
-    int iteration = 0;
-    for(iteration = (m_Times.size() - 1); iteration >= 0; iteration--)
-    {
-        time_t Time = m_Times[iteration];
-        if(UnixTime > Time)
-        {
-            break;
-        }
-    }
-
-    float Temp = m_Temps[iteration];
-    return Temp;
-}
-
-const int NetworkControl::GetWeatherCode2(const time_t& UnixTime)
-{
-    int iteration = 0;
-    for(iteration = (m_Times.size() - 1); iteration >= 0; iteration--)
-    {
-        time_t Time = m_Times[iteration];
-        if(UnixTime > Time)
-        {
-            break;
-        }
-    }
-
-    int Code = m_Codes[iteration];
-    return Code;
-}
-
-const float NetworkControl::GetTemprature3()
-{
-    return m_JsonDoc["minutely_15"]["temperature_2m"][0];
-}
-
-const int NetworkControl::GetWeatherCode3()
-{
-    return m_JsonDoc["minutely_15"]["weather_code"][0];
+    return m_JsonDoc["hourly"]["weather_code"][Index];
 }

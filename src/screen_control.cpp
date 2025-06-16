@@ -30,7 +30,7 @@ void ScreenControl::Init()
     m_Display->ssd1306_command(0x81); 
     m_Display->ssd1306_command(1);
 
-    m_Display->clearDisplay();
+    DisplayClearScreen();
 }
 
 void ScreenControl::DisplayWeekDay(const tm& timeinfo)
@@ -42,11 +42,13 @@ void ScreenControl::DisplayWeekDay(const tm& timeinfo)
     char buffer[10];
     strftime(buffer, 10, "%A", &timeinfo);
     m_Display->println(buffer);
-    m_Display->display();
 }
 
 void ScreenControl::DisplayDate(const tm& timeinfo)
 {
+    m_Display->setTextSize(1);
+    m_Display->setTextColor(WHITE);
+
     char buffer[10];
     strftime(buffer, 10, "%e-%b-%y", &timeinfo);
 
@@ -58,7 +60,6 @@ void ScreenControl::DisplayDate(const tm& timeinfo)
     
     m_Display->setCursor(offsetX, 5);
     m_Display->println(buffer);
-    m_Display->display();
 }
 
 void ScreenControl::DisplayTest()
@@ -67,7 +68,6 @@ void ScreenControl::DisplayTest()
     m_Display->setTextColor(WHITE);
     m_Display->setCursor(0,16);
     m_Display->println("HEY");
-    m_Display->display();
 }
 
 void ScreenControl::DisplayClearScreen()
@@ -100,7 +100,6 @@ void ScreenControl::DisplayDrawCelcius(int16_t x, int16_t y)
 
     m_Display->setCursor(x + 5, y);
     m_Display->println("C");
-    m_Display->display();
 }
 
 void ScreenControl::DisplayTemprature(float Temprature, int16_t x, int16_t y)
@@ -113,16 +112,12 @@ void ScreenControl::DisplayTemprature(float Temprature, int16_t x, int16_t y)
     m_Display->setTextColor(WHITE);
     m_Display->setCursor(x, y);
     m_Display->println(NewTemp.c_str());
-    m_Display->display();
 
     short int x1, y1;
     short unsigned int w, h;
     m_Display->getTextBounds(NewTemp.c_str(), 0, 0, &x1, &y1, &w, &h);
 
     DisplayDrawCelcius(w, y);
-
-    //m_Display->drawBitmap(0, 32, epd_bitmap_wi_day_sunny_overcast, 32, 32, 1);
-    m_Display->display();
 }
 
 void ScreenControl::DisplayTimeHrMin(const tm& timeinfo, int16_t x, int16_t y, bool bFromRightSide)
@@ -144,7 +139,6 @@ void ScreenControl::DisplayTimeHrMin(const tm& timeinfo, int16_t x, int16_t y, b
     m_Display->setTextSize(1);
     m_Display->setTextColor(WHITE);
     m_Display->println(buffer);
-    m_Display->display();
 }
 
 void ScreenControl::DisplayIteration(int16_t x, int16_t y, bool bFromRightSide)
@@ -163,7 +157,6 @@ void ScreenControl::DisplayIteration(int16_t x, int16_t y, bool bFromRightSide)
     m_Display->setTextSize(1);
     m_Display->setTextColor(WHITE);
     m_Display->println(m_IterateCounter);
-    m_Display->display();
 
     m_IterateCounter++;
 }
@@ -174,17 +167,41 @@ void ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t x
     m_Display->setTextSize(1);
     m_Display->setTextColor(WHITE);
     m_Display->println(WeatherCode.c_str());
-    m_Display->display();
 }
 
 void ScreenControl::DisplayError()
 {
-    std::string ErrorMsg = "An Error has occured...";
+    std::string ErrorMsg = "An Error has occured.";
+    std::string RetryMsg = "Retrying in 10 sec.";
 
-    m_Display->clearDisplay();
     m_Display->setCursor(0, 16);
     m_Display->setTextSize(1);
     m_Display->setTextColor(WHITE);
     m_Display->println(ErrorMsg.c_str());
+
+    m_Display->setCursor(0, 32);
+    m_Display->println(RetryMsg.c_str());
+}
+
+void ScreenControl::Display()
+{
     m_Display->display();
+}
+
+void ScreenControl::DisplayConnecting()
+{
+    std::string ConnectMsg = "Connecting to WiFi..";
+
+    m_Display->setCursor(0, 0);
+    m_Display->setTextSize(1);
+    m_Display->setTextColor(WHITE);
+    m_Display->println(ConnectMsg.c_str());
+}
+
+void ScreenControl::DisplayMessage(const char* Msg, int16_t x, int16_t y)
+{
+    m_Display->setCursor(x, y);
+    m_Display->setTextSize(1);
+    m_Display->setTextColor(WHITE);
+    m_Display->println(Msg);
 }
