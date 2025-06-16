@@ -137,10 +137,10 @@ void loop() {
         screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
         screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
-        screen_control->DisplayTemprature(network_control->GetTemprature(Index), 0, 16);
+        screen_control->DisplayTimeHrMin(network_control->GetTime(Index), 0, 26, false);
+        screen_control->DisplayTemprature(network_control->GetTemprature(Index), 0, 36);
         int WeatherCode = network_control->GetWeatherCode(Index);
-        screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 0, 36);
-        screen_control->DisplayTimeHrMin(network_control->GetTime(Index), 0, 46, false);
+        screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 0, 46);
 
         screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
         screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
