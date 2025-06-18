@@ -24,6 +24,7 @@ public:
     void DisplayDrawCelcius(int16_t x, int16_t y);
     void DisplayTemprature(float Temprature, int16_t x, int16_t y);
     void DisplayWeatherCode(const std::string& WeatherCode, int16_t x, int16_t y);
+    void DisplayWeatherIcon(const unsigned char* WeatherIcon);
     
     //For debug
     void DisplayIteration(const int Iterate, int16_t x, int16_t y, bool bFromRightSide);

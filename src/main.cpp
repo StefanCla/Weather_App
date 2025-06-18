@@ -13,6 +13,7 @@ TimeControl* time_control = nullptr;
 NetworkControl* network_control = nullptr;
 
 std::map<int, std::string> WeatherMap;
+std::map<int, const unsigned char*> WeatherIconMap;
 
 int Index = 0;
 int QuarterIterateCounter = 0; //For debug
@@ -54,12 +55,24 @@ void SetupWeatherMap()
     WeatherMap.insert({99, "Thunderstorm w/ Heavy Hail"});
 }
 
+void SetupWeahterIconMap()
+{
+    WeatherIconMap.insert({0, weather_icon_sun});
+    WeatherIconMap.insert({1, weather_icon_mainly_clear});
+    WeatherIconMap.insert({2, weather_icon_partially_cloudy});
+    WeatherIconMap.insert({3, weather_icon_overcast});
+    WeatherIconMap.insert({51, weather_icon_drizzle});
+    WeatherIconMap.insert({61, weather_icon_light_rain});
+    WeatherIconMap.insert({65, weather_icon_heavy_rain});
+}
+
 void setup() {
     screen_control = new ScreenControl();
     network_control = new NetworkControl();
     time_control = new TimeControl(network_control);
 
     SetupWeatherMap();
+    SetupWeahterIconMap();
 
     screen_control->DisplayMessage("Connecting to WiFi..", 0, 0);
     screen_control->Display();
@@ -96,7 +109,18 @@ void setup() {
 
 void loop() {
     time_control->Tick();
-    
+
+    //Turn screen off at midnight, we wouldn't need to care about the weather anyway
+    if((time_control->GetCurrentTimeStruct().tm_hour >= 22) &&
+        (time_control->GetCurrentTimeStruct().tm_hour <= 6))
+    {
+        screen_control->m_Display->setContrast(0);
+    } 
+    else
+    {
+        screen_control->m_Display->setContrast(1);
+    }
+
     screen_control->DisplayClearScreen();
 
     if((time_control->GetCurrentTime() >= time_control->GetQuarterTime()) || bHasError)
@@ -147,12 +171,10 @@ void loop() {
 
         screen_control->ResetFont();
         screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 64, 50);
+        screen_control->DisplayWeatherIcon(WeatherIconMap[3]);  //Not used yet as we dont have icons for all
 
         //screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
         //screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
-
-        screen_control->m_Display->drawBitmap(0, 16, 6, 48, epd_bitmap_sun2);
-
         //screen_control->DisplayIteration(QuarterIterateCounter, 0, 36, true);
 
         Index++;

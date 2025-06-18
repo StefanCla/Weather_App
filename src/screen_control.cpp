@@ -126,6 +126,11 @@ void ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t x
     m_Display->println(WeatherCode.c_str());
 }
 
+void ScreenControl::DisplayWeatherIcon(const unsigned char* WeatherIcon)
+{
+    m_Display->drawBitmap(0, 16, 6, 48, WeatherIcon);
+}
+
 void ScreenControl::DisplayIteration(const int Iterate, int16_t x, int16_t y, bool bFromRightSide)
 {
     if(bFromRightSide)
