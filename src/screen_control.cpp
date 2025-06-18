@@ -5,9 +5,17 @@
 
 ScreenControl::ScreenControl()
 {
-    m_Display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+    m_Display = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C (U8G2_R0, U8X8_PIN_NONE, SCL, SDA);
 
-    Init();
+    m_Display->begin();
+
+    DisplayClearScreen();
+
+    ResetFont();
+    m_Display->setFontPosTop();
+    m_Display->home();
+
+    m_Display->setContrast(1);
 }
 
 ScreenControl::~ScreenControl()
@@ -15,28 +23,24 @@ ScreenControl::~ScreenControl()
     delete m_Display;
 }
 
-void ScreenControl::Init()
+void ScreenControl::Display()
 {
-    Serial.begin(9600);
+    m_Display->sendBuffer();
+}
 
-    // initialize the OLED object
-    if (!m_Display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-        ;  // Don't proceed, loop forever
-    }
+void ScreenControl::DisplayClearScreen()
+{
+    m_Display->clearBuffer();
+}
 
-    //Lower brightness
-    m_Display->ssd1306_command(0x81); 
-    m_Display->ssd1306_command(1);
-
-    DisplayClearScreen();
+void ScreenControl::DisplayMessage(const char* Msg, int16_t x, int16_t y)
+{
+    m_Display->setCursor(x, y);
+    m_Display->println(Msg);
 }
 
 void ScreenControl::DisplayWeekDay(const tm& timeinfo)
 {
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
     m_Display->setCursor(0, 5);
 
     char buffer[10];
@@ -46,25 +50,34 @@ void ScreenControl::DisplayWeekDay(const tm& timeinfo)
 
 void ScreenControl::DisplayDate(const tm& timeinfo)
 {
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
-
     char buffer[10];
     strftime(buffer, 10, "%e-%b-%y", &timeinfo);
 
     short int x1, y1;
     short unsigned int w, h;
-    m_Display->getTextBounds(buffer, 0, 0, &x1, &y1, &w, &h);
+    int16_t width = m_Display->getUTF8Width(buffer);
 
-    int offsetX = SCREEN_WIDTH - w;
+    int offsetX = SCREEN_WIDTH - width;
     
     m_Display->setCursor(offsetX, 5);
     m_Display->println(buffer);
 }
 
-void ScreenControl::DisplayClearScreen()
+void ScreenControl::DisplayTimeHrMin(const tm& timeinfo, int16_t x, int16_t y, bool bFromRightSide)
 {
-    m_Display->clearDisplay();
+    m_Display->setFont(m_WeatherNumFont);
+
+    char buffer[10];
+    strftime(buffer, 10, "%R", &timeinfo);
+
+    if(bFromRightSide)
+    {
+        int16_t width = m_Display->getUTF8Width(buffer);
+        x = SCREEN_WIDTH - (width + x);
+    }
+
+    m_Display->setCursor(x, y);
+    m_Display->println(buffer);
 }
 
 void ScreenControl::DisplayDrawCelcius(int16_t x, int16_t y)
@@ -75,20 +88,18 @@ void ScreenControl::DisplayDrawCelcius(int16_t x, int16_t y)
     x += 1; //Add slight offset
 
     //draw small circle
-    m_Display->drawPixel(x + 1, y, 1);  //Top
-    m_Display->drawPixel(x + 2, y, 1);
+    m_Display->setDrawColor(1);
+    m_Display->drawPixel(x + 1, y);  //Top
+    m_Display->drawPixel(x + 2, y);
 
-    m_Display->drawPixel(x, y + 1, 1);  //Left
-    m_Display->drawPixel(x, y + 2, 1);
+    m_Display->drawPixel(x, y + 1);  //Left
+    m_Display->drawPixel(x, y + 2);
 
-    m_Display->drawPixel(x + 3, y + 1, 1);  //Right
-    m_Display->drawPixel(x + 3, y + 2, 1);
+    m_Display->drawPixel(x + 3, y + 1);  //Right
+    m_Display->drawPixel(x + 3, y + 2);
 
-    m_Display->drawPixel(x + 1, y + 3, 1);  //Bottom
-    m_Display->drawPixel(x + 2, y + 3, 1);
-
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
+    m_Display->drawPixel(x + 1, y + 3);  //Bottom
+    m_Display->drawPixel(x + 2, y + 3);
 
     m_Display->setCursor(x + 5, y);
     m_Display->println("C");
@@ -96,78 +107,40 @@ void ScreenControl::DisplayDrawCelcius(int16_t x, int16_t y)
 
 void ScreenControl::DisplayTemprature(float Temprature, int16_t x, int16_t y)
 {
+    m_Display->setFont(m_WeatherNumFont);
+
     std::stringstream stream;
     stream << std::fixed << std::setprecision(1) << Temprature;
     std::string NewTemp = stream.str();
 
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
     m_Display->setCursor(x, y);
     m_Display->println(NewTemp.c_str());
 
-    short int x1, y1;
-    short unsigned int w, h;
-    m_Display->getTextBounds(NewTemp.c_str(), 0, 0, &x1, &y1, &w, &h);
-
-    DisplayDrawCelcius(w, y);
+    int16_t width = m_Display->getUTF8Width(NewTemp.c_str());
+    DisplayDrawCelcius(x + width, y);
 }
 
-void ScreenControl::DisplayTimeHrMin(const tm& timeinfo, int16_t x, int16_t y, bool bFromRightSide)
+void ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t x, int16_t y)
 {
-    char buffer[10];
-    strftime(buffer, 10, "%R", &timeinfo);
-
-    if(bFromRightSide)
-    {
-        int16_t x1, y1;
-        uint16_t w, h;
-
-        m_Display->getTextBounds(buffer, 0, 0, &x1, &y1, &w, &h);
-
-        x = SCREEN_WIDTH - (w + x);
-    }
-
     m_Display->setCursor(x, y);
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
-    m_Display->println(buffer);
+    m_Display->println(WeatherCode.c_str());
 }
 
 void ScreenControl::DisplayIteration(const int Iterate, int16_t x, int16_t y, bool bFromRightSide)
 {
     if(bFromRightSide)
     {
-        int16_t x1, y1;
-        uint16_t w, h;
         std::string TempString = std::to_string(Iterate);
-        m_Display->getTextBounds(TempString.c_str(), 0, 0, &x1, &y1, &w, &h);
+        int16_t width = m_Display->getUTF8Width(TempString.c_str());
 
-        x = SCREEN_WIDTH - (w + x);
+        x = SCREEN_WIDTH - (width + x);
     }
 
     m_Display->setCursor(x, y);
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
     m_Display->println(Iterate);
 }
 
-void ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t x, int16_t y)
+void ScreenControl::ResetFont()
 {
-    m_Display->setCursor(x, y);
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
-    m_Display->println(WeatherCode.c_str());
-}
-
-void ScreenControl::Display()
-{
-    m_Display->display();
-}
-
-void ScreenControl::DisplayMessage(const char* Msg, int16_t x, int16_t y)
-{
-    m_Display->setCursor(x, y);
-    m_Display->setTextSize(1);
-    m_Display->setTextColor(WHITE);
-    m_Display->println(Msg);
+    m_Display->setFont(m_DefaultFont);
 }

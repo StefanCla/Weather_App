@@ -6,6 +6,7 @@
 #include "screen_control.h"
 #include "network_control.h"
 #include "time_control.h"
+#include "weather_bitmaps.h"
 
 ScreenControl* screen_control = nullptr;
 TimeControl* time_control = nullptr;
@@ -18,6 +19,9 @@ int QuarterIterateCounter = 0; //For debug
 bool bHasError = false;
 
 //WMO - Sky Type
+//Due to the limited screen real estate, text had to be shorted to be able to be displayed on screen.
+//Not ideal, but doable
+//[S] = Slight, [M] = Moderate, [H] Heavy
 void SetupWeatherMap()
 {
     WeatherMap.insert({0, "Clear Sky"});
@@ -36,7 +40,7 @@ void SetupWeatherMap()
     WeatherMap.insert({65, "Heavy Rain"});
     WeatherMap.insert({66, "Light Freezing Rain"});
     WeatherMap.insert({67, "Heavy Freezing Rain"});
-    WeatherMap.insert({71, "Slightl Snow Fall"});
+    WeatherMap.insert({71, "Slight Snow Fall"});
     WeatherMap.insert({73, "Moderate Snow Fall"});
     WeatherMap.insert({75, "Heavy Snow Fall"});
     WeatherMap.insert({77, "Snow Grains"});
@@ -62,7 +66,8 @@ void setup() {
 
     if(!network_control->TryConnecting())
     {
-        screen_control->DisplayMessage("An Error has occured.", 0, 16);
+        //No need to display error, it will immediately retry on first run of the loop.
+        //screen_control->DisplayMessage("An Error has occured.", 0, 16);
         bHasError = true;
     }
     else
@@ -90,7 +95,6 @@ void setup() {
 }
 
 void loop() {
-
     time_control->Tick();
     
     screen_control->DisplayClearScreen();
@@ -137,15 +141,19 @@ void loop() {
         screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
         screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
-        screen_control->DisplayTimeHrMin(network_control->GetTime(Index), 0, 26, false);
-        screen_control->DisplayTemprature(network_control->GetTemprature(Index), 0, 36);
+        screen_control->DisplayTimeHrMin(network_control->GetTime(Index), 64, 16, false);
+        screen_control->DisplayTemprature(network_control->GetTemprature(Index), 64, 32);
         int WeatherCode = network_control->GetWeatherCode(Index);
-        screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 0, 46);
 
-        screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
-        screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
+        screen_control->ResetFont();
+        screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 64, 50);
 
-        screen_control->DisplayIteration(QuarterIterateCounter, 0, 36, true);
+        //screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
+        //screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
+
+        screen_control->m_Display->drawBitmap(0, 16, 6, 48, epd_bitmap_sun2);
+
+        //screen_control->DisplayIteration(QuarterIterateCounter, 0, 36, true);
 
         Index++;
         if(Index > 5)

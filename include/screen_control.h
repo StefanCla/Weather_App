@@ -1,21 +1,16 @@
+#include <Arduino.h>
+#include <U8g2lib.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 
 #define SCREEN_WIDTH 128  // OLED display width, in pixels
 #define SCREEN_HEIGHT 64  // OLED display height, in pixels
-
-// Declaration for SSD1306 display connected using I2C
-#define OLED_RESET -1  // Reset pin
-#define SCREEN_ADDRESS 0x3C
 
 class ScreenControl
 {
 public:
     ScreenControl();
     ~ScreenControl();
-    void Init();
 
     void Display();
     void DisplayClearScreen();
@@ -33,7 +28,14 @@ public:
     //For debug
     void DisplayIteration(const int Iterate, int16_t x, int16_t y, bool bFromRightSide);
 
+    void ResetFont();
+
+    U8G2_SSD1306_128X64_NONAME_F_HW_I2C* m_Display;
+
 private:
-    Adafruit_SSD1306* m_Display = nullptr;
+    const uint8_t* m_WeatherNumFont = u8g2_font_victoriabold8_8n;
+    const uint8_t* m_WeatherAlphFont = nullptr;
+
+    const uint8_t* m_DefaultFont = u8g2_font_6x10_mf;
 
 };
