@@ -53,5 +53,5 @@ private:
 
     const int16_t m_MaxTextWidth = 64;
     std::map<const char*, Scroller*> m_ScrollMap;
-
+    std::string m_PreviousScrollText = "";
 };

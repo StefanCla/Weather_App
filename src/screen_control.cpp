@@ -99,6 +99,16 @@ bool ScreenControl::DisplayScrollMessage(const char* Msg, int16_t X, int16_t Y)
         bHasReachedEnd = true;
     }
 
+    //Reset offset on first display, and set bHasReachedEnd true to avoid immediate start of scrolling.
+    std::string CurrentScrollText = Msg;
+    if((m_PreviousScrollText.empty()) || (m_PreviousScrollText != CurrentScrollText))
+    {
+        m_PreviousScrollText = CurrentScrollText;
+        It->second->bDirection = false;
+        It->second->ScrollOffsetX = 0;
+        bHasReachedEnd = true;
+    }
+
     m_Display->drawUTF8(X + CurrentScroller->ScrollOffsetX, Y, Msg);
 
     //Reset clipped screen
@@ -197,6 +207,7 @@ bool ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t X
     }
     else
     {
+        m_PreviousScrollText = WeatherCode;
         m_Display->setCursor(X, Y);
         m_Display->println(WeatherCode.c_str());
     }
