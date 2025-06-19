@@ -144,18 +144,18 @@ void setup() {
 void loop() {
     time_control->Tick();
 
-    //Turn screen off between 00:00 and 06:00, we (I) dont care about the weather at that time.
-    // if((time_control->GetCurrentTimeStruct().tm_hour >= 0) &&
-    //     (time_control->GetCurrentTimeStruct().tm_hour <= 6))
-    // {
-    //     screen_control->m_Display->setContrast(0);
-    // } 
-    // else
-    // {
-    //     screen_control->m_Display->setContrast(1);
-    // }
-
     screen_control->DisplayClearScreen();
+
+    //Turn screen off between 00:00 and 06:00, we (I) dont care about the weather at that time.
+    if((time_control->GetCurrentTimeStruct().tm_hour >= 0) &&
+        (time_control->GetCurrentTimeStruct().tm_hour <= 6))
+    {
+        screen_control->SetContrast(0);
+    } 
+    else
+    {
+        screen_control->SetContrast(1);
+    }
 
     if((time_control->GetCurrentTime() >= time_control->GetQuarterTime()) || bHasError)
     {
@@ -195,11 +195,10 @@ void loop() {
         }
     }
 
-    //Early return, wait 10 seconds
     if(bHasError)
     {
         screen_control->Display();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        std::this_thread::sleep_for(std::chrono::seconds(10));
         return;
     }
 
@@ -244,7 +243,7 @@ void loop() {
 
         if(bHasReachedScrollEnd)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+            std::this_thread::sleep_for(std::chrono::seconds(3));
         }
         else
         {
@@ -253,6 +252,6 @@ void loop() {
     }
     else
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }

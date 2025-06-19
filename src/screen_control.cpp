@@ -225,6 +225,11 @@ void ScreenControl::ResetFont()
     m_Display->setFont(m_DefaultFont);
 }
 
+void ScreenControl::SetContrast(uint8_t Contrast)
+{
+    m_Display->setContrast(Contrast);
+}
+
 int16_t ScreenControl::GetUTFWidth(const std::string& String)
 {
     return m_Display->getUTF8Width(String.c_str());

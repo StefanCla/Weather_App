@@ -39,6 +39,7 @@ public:
     void DisplayWeatherIcon(const unsigned char* WeatherIcon);
     
     void ResetFont();
+    void SetContrast(uint8_t Contrast);
 
     inline int16_t GetMaxTextWidth() const { return m_MaxTextWidth; }
     int16_t GetUTFWidth(const std::string& String);
