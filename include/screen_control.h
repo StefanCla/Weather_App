@@ -23,18 +23,19 @@ public:
     ~ScreenControl();
 
     void Display();
+    void DisplayArea(uint8_t TileX, uint8_t TileY, uint8_t TileXCount, uint8_t  TileYCount);
     void DisplayClearScreen();
 
-    void DisplayMessage(const char* Msg, int16_t x, int16_t y);
-    bool DisplayScrollMessage(const char* Msg, int16_t x, int16_t y);
+    void DisplayMessage(const char* Msg, int16_t X, int16_t Y);
+    bool DisplayScrollMessage(const char* Msg, int16_t X, int16_t Y);
 
-    void DisplayWeekDay(const tm& timeinfo);
-    void DisplayDate(const tm& timeinfo);
-    void DisplayTimeHrMin(const tm& timeinfo, int16_t x, int16_t y, bool bFromRightSide);
+    void DisplayWeekDay(const tm& TimeInfo);
+    void DisplayDate(const tm& TimeInfo);
+    void DisplayTimeHrMin(const tm& TimeInfo, int16_t X, int16_t Y, bool bFromRightSide);
 
-    void DisplayDrawCelcius(int16_t x, int16_t y);
-    void DisplayTemprature(float Temprature, int16_t x, int16_t y);
-    bool DisplayWeatherCode(const std::string& WeatherCode, int16_t x, int16_t y);
+    void DisplayDrawCelcius(int16_t X, int16_t Y);
+    void DisplayTemprature(float Temprature, int16_t X, int16_t Y);
+    bool DisplayWeatherCode(const std::string& WeatherCode, int16_t X, int16_t Y);
     void DisplayWeatherIcon(const unsigned char* WeatherIcon);
     
     void ResetFont();
@@ -42,9 +43,9 @@ public:
     inline int16_t GetMaxTextWidth() const { return m_MaxTextWidth; }
     int16_t GetUTFWidth(const std::string& String);
 
-    U8G2_SSD1306_128X64_NONAME_F_HW_I2C* m_Display;
-
 private:
+    U8G2_SSD1306_128X64_NONAME_F_HW_I2C* m_Display = nullptr;
+
     const uint8_t* m_WeatherNumFont = u8g2_font_victoriabold8_8n;
     const uint8_t* m_WeatherAlphFont = nullptr;
 

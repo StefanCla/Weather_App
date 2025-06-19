@@ -121,21 +121,15 @@ void setup() {
 
     if(!network_control->TryConnecting())
     {
-        //No need to display error, it will immediately retry on first run of the loop.
-        //screen_control->DisplayMessage("An Error has occured.", 0, 16);
         bHasError = true;
     }
     else
     {
-        screen_control->DisplayClearScreen();
-
         time_control->CorrectTime();
         time_control->CalculateNextQuarter();
 
         if(!network_control->GetWeatherJSON())
         {
-            screen_control->DisplayMessage("Failed obtaining JSON.", 0, 0);
-            screen_control->DisplayMessage("An Error has occured.", 0, 16);
             bHasError = true;
         }
         else
@@ -145,28 +139,28 @@ void setup() {
 
         network_control->Disconnect();
     }
-
-    screen_control->Display();
 }
 
 void loop() {
     time_control->Tick();
 
     //Turn screen off between 00:00 and 06:00, we (I) dont care about the weather at that time.
-    if((time_control->GetCurrentTimeStruct().tm_hour >= 0) &&
-        (time_control->GetCurrentTimeStruct().tm_hour <= 6))
-    {
-        screen_control->m_Display->setContrast(0);
-    } 
-    else
-    {
-        screen_control->m_Display->setContrast(1);
-    }
+    // if((time_control->GetCurrentTimeStruct().tm_hour >= 0) &&
+    //     (time_control->GetCurrentTimeStruct().tm_hour <= 6))
+    // {
+    //     screen_control->m_Display->setContrast(0);
+    // } 
+    // else
+    // {
+    //     screen_control->m_Display->setContrast(1);
+    // }
 
     screen_control->DisplayClearScreen();
 
     if((time_control->GetCurrentTime() >= time_control->GetQuarterTime()) || bHasError)
     {
+        bShouldScroll = false;
+
         screen_control->DisplayMessage("Connecting to WiFi..", 0, 0);
         screen_control->Display();
 
@@ -201,23 +195,32 @@ void loop() {
         }
     }
 
-    if(!bHasError && (time_control->GetCurrentTime() > time_control->GetNext10Sec()))
+    //Early return, wait 10 seconds
+    if(bHasError)
     {
-         time_control->CalculateNext10Sec();
+        screen_control->Display();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        return;
+    }
+
+    if((time_control->GetCurrentTime() > time_control->GetNext10Sec()))
+    {
+        time_control->CalculateNext10Sec();
+
+        WeatherCode = network_control->GetWeatherCode(HourlyIndex);
+
+        screen_control->ResetFont();
+        int16_t CharWidth = screen_control->GetUTFWidth(WeatherMap[WeatherCode].c_str());
+        bShouldScroll = (CharWidth > screen_control->GetMaxTextWidth());
 
         screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
         screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
         screen_control->DisplayTimeHrMin(network_control->GetTime(HourlyIndex), 64, 16, false);
         screen_control->DisplayTemprature(network_control->GetTemprature(HourlyIndex), 64, 32);
-        WeatherCode = network_control->GetWeatherCode(HourlyIndex);
+        screen_control->DisplayWeatherIcon(WeatherIconMap[WeatherCode]);
 
         screen_control->ResetFont();
-
-        int16_t CharWidth = screen_control->GetUTFWidth(WeatherMap[WeatherCode].c_str());
-        bShouldScroll = (CharWidth > screen_control->GetMaxTextWidth());
-
-        screen_control->DisplayWeatherIcon(WeatherIconMap[WeatherCode]);  //Not used yet as we dont have icons for all
 
         //Display up to 6 hours of weather data
         HourlyIndex++;
@@ -229,27 +232,27 @@ void loop() {
         if(!bShouldScroll)
         {
             bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48);
-            screen_control->Display();
-            delay(10000);
         }
-        else if(bShouldScroll)
-        {
-            screen_control->Display();
-        }
+
+        screen_control->Display();
     }
 
     if(bShouldScroll)
     {
         bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48);
-        screen_control->m_Display->updateDisplayArea(8, 6, 8, 2);
+        screen_control->DisplayArea(8, 6, 8, 2);
 
         if(bHasReachedScrollEnd)
         {
-            delay(3000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
         }
         else
         {
-            delay(45);
+            std::this_thread::sleep_for(std::chrono::milliseconds(45));
         }
+    }
+    else
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     }
 }

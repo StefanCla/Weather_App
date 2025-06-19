@@ -3,7 +3,7 @@
 
 NetworkControl::NetworkControl()
 {
-    Serial.begin(115200);
+    Serial.begin(115200);   //Not 100% if this is needed
 
     m_TimeStruct = new tm();
     m_JSON = new String("{}");
@@ -58,10 +58,10 @@ tm NetworkControl::GetNTPTime()
 {
     configTime(m_GmtOffset_sec, m_DaylightOffset_sec, m_NtpServer);
 
-    tm timeinfo;
-    getLocalTime(&timeinfo);
+    tm TimeInfo;
+    getLocalTime(&TimeInfo);
 
-    return timeinfo;
+    return TimeInfo;
 }
 
 void NetworkControl::HttpGETRequest(const char* URL)
@@ -90,9 +90,9 @@ bool NetworkControl::GetWeatherJSON()
         return false;
     }
 
-    DeserializationError Err = deserializeJson(m_JsonDoc, *m_JSON);
+    DeserializationError Error = deserializeJson(m_JsonDoc, *m_JSON);
     
-    if(Err)
+    if(Error)
     {
         return false;
     }

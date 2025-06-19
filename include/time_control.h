@@ -9,9 +9,8 @@ public:
     TimeControl(NetworkControl* Network);
     ~TimeControl();
 
-    void CalculateNext10Sec();
-
     void Tick();
+    void CalculateNext10Sec();
     void CalculateNextQuarter();
 
     inline void SetCurrentTime(time_t currentTime) { *m_CurrentTime = currentTime; }
@@ -23,7 +22,7 @@ public:
 
     inline const time_t& GetNext10Sec() const { return *m_Next10Sec; }
 
-    inline float GetTimeSec() const { return m_TimeSec; }
+    inline const float GetTimeSec() const { return m_TimeSec; }
 
     void CorrectTime();
 
@@ -33,10 +32,10 @@ private:
     time_t* m_CurrentTime = nullptr;
     tm* m_CurrentTimeStruct = nullptr;
 
-    time_t* m_Next10Sec = nullptr;
-
     time_t* m_QuarterTime = nullptr;
     tm* m_QuarterTimeStruct = nullptr;
+
+    time_t* m_Next10Sec = nullptr;
 
     int m_TimeSec = -1;
 };

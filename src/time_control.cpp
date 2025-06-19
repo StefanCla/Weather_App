@@ -18,43 +18,21 @@ TimeControl::TimeControl(NetworkControl* Network)
     *m_QuarterTime = *m_CurrentTime;
     *m_QuarterTimeStruct = *m_CurrentTimeStruct;
 
-    *m_Next10Sec = *m_CurrentTime + 10;
+    *m_Next10Sec = *m_CurrentTime;
 
+    CalculateNext10Sec();
     CalculateNextQuarter();
 }
 
 TimeControl::~TimeControl()
 {
+    delete m_Next10Sec;
+
     delete m_QuarterTimeStruct;
     delete m_QuarterTime;
 
     delete m_CurrentTimeStruct;
     delete m_CurrentTime;
-}
-
-void TimeControl::CalculateNextQuarter()
-{
-    const float hour = 60.0f;
-    const float quart = 15.0f;
-
-    float MinRemainHour = hour - (float)m_CurrentTimeStruct->tm_min;
-    float Val = MinRemainHour / quart;
-
-    float whole, frac;
-    frac = std::modf(Val, &whole);
-
-    frac += 0.05f;
-    int MinRemain = frac * quart;
-
-    if(MinRemain <= 0)
-    {
-      MinRemain = 15;
-    }
-
-    m_TimeSec = (MinRemain * 60) - m_CurrentTimeStruct->tm_sec;
-
-    *m_QuarterTime = *m_CurrentTime + m_TimeSec;
-    *m_QuarterTimeStruct = *localtime(m_QuarterTime);
 }
 
 void TimeControl::Tick()
@@ -63,13 +41,39 @@ void TimeControl::Tick()
     *m_CurrentTimeStruct = *localtime(m_CurrentTime);
 }
 
+void TimeControl::CalculateNext10Sec()
+{
+    *m_Next10Sec = *m_CurrentTime + 10;
+}
+
+void TimeControl::CalculateNextQuarter()
+{
+    const float Hour = 60.0f;
+    const float Quarter = 15.0f;
+    const int Seconds = 60;
+
+    float MinRemainHour = Hour - static_cast<float>(m_CurrentTimeStruct->tm_min);
+    float QuartersRemaining = MinRemainHour / Quarter;
+
+    float Whole, Frac;
+    Frac = std::modf(QuartersRemaining, &Whole);
+
+    Frac += 0.05f;  //Round
+    int MinRemaining = Frac * Quarter;
+
+    if(MinRemaining <= 0)
+    {
+      MinRemaining = 15;
+    }
+
+    m_TimeSec = (MinRemaining * Seconds) - m_CurrentTimeStruct->tm_sec;
+
+    *m_QuarterTime = *m_CurrentTime + m_TimeSec;
+    *m_QuarterTimeStruct = *localtime(m_QuarterTime);
+}
+
 void TimeControl::CorrectTime()
 {
     *m_CurrentTimeStruct = m_NetworkControl->GetNTPTime();
     *m_CurrentTime = mktime(m_CurrentTimeStruct);
-}
-
-void TimeControl::CalculateNext10Sec()
-{
-    *m_Next10Sec = *m_CurrentTime + 10;
 }
