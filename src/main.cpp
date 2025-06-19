@@ -15,14 +15,56 @@ NetworkControl* network_control = nullptr;
 std::map<int, std::string> WeatherMap;
 std::map<int, const unsigned char*> WeatherIconMap;
 
-int Index = 0;
-int QuarterIterateCounter = 0; //For debug
+int HourlyIndex = 0;
+int WeatherCode = 0;
+
 bool bHasError = false;
+bool bShouldScroll = false;
+bool bHasReachedScrollEnd = false;
+
+//********************************/
+//  General flow:
+//  Every quarter of the hour (00:00 - 00:15 - 00:30 - 00:45),
+//  We connect to the internet and obtain the NTP time & weather data.
+//  NTP time is used to correct the ESP32 clock as accurately as possible, though arguably, every 15 minutes might be overkill. 
+//  Weather data is used to display the current and (up to) 6 hours of weather forecast.
+// 
+//  Details are shown on an SSD1306 I2C SPI display, the details visible are:
+//  -Current week day
+//  -Current date
+//  -Weather icon based on weather code
+//  -Weather forecast time - To help indicate what details are associated with what hour of the day
+//  -Weather temprature (in celcius)
+//  -Weather type based on weather code - To help indicate what weather it will be, if the icon does not provide enough clarity
+//
+//  If we fail to connect to the internet or obtain the weather JSON, We try again in 10 seconds.
+//  We attempt to connect to the internet 10 times, before going on cooldown.
+//
+//  Hourly weather data is shown every ~10 seconds, meaning it takes a minute before we loop back.
+//  We try to reduce screen-updates as much as possible, hence why we delay for 10 seconds if we know all data is static.
+//  If we scroll the weather type (as it might be too long to fit on screen), we delay only for a few milliseconds.
+//
+//  Other stuff:
+//  There is a severe lack of nullptr checks in the code.
+//  This is on purpose, as all data constructed isn't getting deleted until we exit the program.
+//  Which it never does, as the ESP32 goes on infinite-loop after it has been setup regardless.
+//  + I was being lazy for this project :)
+//
+//  From a quick search, it seems that `std::this_thread::sleep_for()` doesn't work accurately on a ESP32,
+//  Hence why delays are used instead.
+// 
+//  Check: https://github.com/StefanCla/Weather_App to see pictures of what this program looks like when running.
+//
+//  Credits:
+//  https://open-meteo.com/ was used to obtain weather data.
+//  https://www.ntppool.org/en/ was used to obtain the current NTP time.
+//  ArduinoJson by Benoit Blanchon was used to deserialize the weather data.
+//  u82g by olikraus was used to get the display up & running
+//
+//********************************/
+
 
 //WMO - Sky Type
-//Due to the limited screen real estate, text had to be shorted to be able to be displayed on screen.
-//Not ideal, but doable
-//[S] = Slight, [M] = Moderate, [H] Heavy
 void SetupWeatherMap()
 {
     WeatherMap.insert({0, "Clear Sky"});
@@ -110,8 +152,8 @@ void setup() {
 void loop() {
     time_control->Tick();
 
-    //Turn screen off at midnight, we wouldn't need to care about the weather anyway
-    if((time_control->GetCurrentTimeStruct().tm_hour >= 22) &&
+    //Turn screen off between 00:00 and 06:00, we (I) dont care about the weather at that time.
+    if((time_control->GetCurrentTimeStruct().tm_hour >= 0) &&
         (time_control->GetCurrentTimeStruct().tm_hour <= 6))
     {
         screen_control->m_Display->setContrast(0);
@@ -152,39 +194,62 @@ void loop() {
             else
             {
                 bHasError = false;
-                Index = 0;
-                QuarterIterateCounter++;
+                HourlyIndex = 0;
             }
 
             network_control->Disconnect();
         }
     }
 
-    if(!bHasError)
+    if(!bHasError && (time_control->GetCurrentTime() > time_control->GetNext10Sec()))
     {
+         time_control->CalculateNext10Sec();
+
         screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
         screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
-        screen_control->DisplayTimeHrMin(network_control->GetTime(Index), 64, 16, false);
-        screen_control->DisplayTemprature(network_control->GetTemprature(Index), 64, 32);
-        int WeatherCode = network_control->GetWeatherCode(Index);
+        screen_control->DisplayTimeHrMin(network_control->GetTime(HourlyIndex), 64, 16, false);
+        screen_control->DisplayTemprature(network_control->GetTemprature(HourlyIndex), 64, 32);
+        WeatherCode = network_control->GetWeatherCode(HourlyIndex);
 
         screen_control->ResetFont();
-        screen_control->DisplayWeatherCode(WeatherMap[WeatherCode], 64, 50);
-        screen_control->DisplayWeatherIcon(WeatherIconMap[3]);  //Not used yet as we dont have icons for all
 
-        //screen_control->DisplayTimeHrMin(time_control->GetCurrentTimeStruct(), 0, 16, true);
-        //screen_control->DisplayTimeHrMin(time_control->GetQuaterTimeStruct(), 0, 26, true);
-        //screen_control->DisplayIteration(QuarterIterateCounter, 0, 36, true);
+        int16_t CharWidth = screen_control->GetUTFWidth(WeatherMap[WeatherCode].c_str());
+        bShouldScroll = (CharWidth > screen_control->GetMaxTextWidth());
 
-        Index++;
-        if(Index > 5)
+        screen_control->DisplayWeatherIcon(WeatherIconMap[WeatherCode]);  //Not used yet as we dont have icons for all
+
+        //Display up to 6 hours of weather data
+        HourlyIndex++;
+        if(HourlyIndex > 5)
         {
-            Index = 0;
+            HourlyIndex = 0;
+        }
+
+        if(!bShouldScroll)
+        {
+            bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48);
+            screen_control->Display();
+            delay(10000);
+        }
+        else if(bShouldScroll)
+        {
+            screen_control->Display();
         }
     }
 
-    screen_control->Display();
+    if(bShouldScroll)
+    {
+        bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48);
+        screen_control->m_Display->updateDisplayArea(8, 6, 8, 2);
 
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+        if(bHasReachedScrollEnd)
+        {
+            delay(3000);
+        }
+        else
+        {
+            delay(45);
+        }
+    }
 }

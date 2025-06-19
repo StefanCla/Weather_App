@@ -11,10 +11,14 @@ TimeControl::TimeControl(NetworkControl* Network)
     m_QuarterTime = new time_t();
     m_QuarterTimeStruct = new tm();
 
+    m_Next10Sec = new time_t();
+
     CorrectTime();
 
     *m_QuarterTime = *m_CurrentTime;
     *m_QuarterTimeStruct = *m_CurrentTimeStruct;
+
+    *m_Next10Sec = *m_CurrentTime + 10;
 
     CalculateNextQuarter();
 }
@@ -63,4 +67,9 @@ void TimeControl::CorrectTime()
 {
     *m_CurrentTimeStruct = m_NetworkControl->GetNTPTime();
     *m_CurrentTime = mktime(m_CurrentTimeStruct);
+}
+
+void TimeControl::CalculateNext10Sec()
+{
+    *m_Next10Sec = *m_CurrentTime + 10;
 }
