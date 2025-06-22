@@ -116,7 +116,9 @@ bool ScreenControl::DisplayScrollMessage(const char* Msg, int16_t X, int16_t Y)
 
 void ScreenControl::DisplayWeekDay(const tm& TimeInfo)
 {
-    m_Display->setCursor(0, 5);
+    m_Display->setFont(m_WeatherAlphFont);
+
+    m_Display->setCursor(0, 0);
 
     char Buffer[10];
     strftime(Buffer, 10, "%A", &TimeInfo);
@@ -125,6 +127,8 @@ void ScreenControl::DisplayWeekDay(const tm& TimeInfo)
 
 void ScreenControl::DisplayDate(const tm& TimeInfo)
 {
+    m_Display->setFont(m_WeatherAlphFont);
+
     char Buffer[10];
     strftime(Buffer, 10, "%e-%b-%y", &TimeInfo);
 
@@ -132,7 +136,7 @@ void ScreenControl::DisplayDate(const tm& TimeInfo)
 
     int OffsetX = SCREEN_WIDTH - Width;
     
-    m_Display->setCursor(OffsetX, 5);
+    m_Display->setCursor(OffsetX, 0);
     m_Display->println(Buffer);
 }
 

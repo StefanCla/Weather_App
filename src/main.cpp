@@ -93,8 +93,8 @@ void SetupWeatherMap()
     WeatherMap.insert({85, "Slight Snow Showers"});
     WeatherMap.insert({86, "Heavy Snow Showers"});
     WeatherMap.insert({95, "Thunderstorm"});
-    WeatherMap.insert({96, "Thunderstorm w/ Slight Hail"});
-    WeatherMap.insert({99, "Thunderstorm w/ Heavy Hail"});
+    WeatherMap.insert({96, "Thunderstorm with Slight Hail"});
+    WeatherMap.insert({99, "Thunderstorm with Heavy Hail"});
 }
 
 void SetupWeahterIconMap()
@@ -149,7 +149,7 @@ void loop() {
 
     //Turn screen off between 00:00 and 06:00, we (I) dont care about the weather at that time.
     if((time_control->GetCurrentTimeStruct().tm_hour >= 0) &&
-        (time_control->GetCurrentTimeStruct().tm_hour <= 6))
+        (time_control->GetCurrentTimeStruct().tm_hour <= 6) && !bHasError)
     {
         screen_control->SetContrast(0);
     } 
@@ -180,9 +180,9 @@ void loop() {
 
             if(!network_control->GetWeatherJSON())
             {
-                screen_control->DisplayMessage("Failed obtaining JSON.", 0, 0);
-                screen_control->DisplayMessage("An Error has occured.", 0, 16);
-                screen_control->DisplayMessage("Retrying in 10 sec.", 0, 32);
+                screen_control->DisplayMessage("Failed obtaining JSON.", 0, 16);
+                screen_control->DisplayMessage("An Error has occured.", 0, 32);
+                screen_control->DisplayMessage("Retrying in 10 sec.", 0, 48);
 
                 bHasError = true;
             }
