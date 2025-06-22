@@ -69,9 +69,6 @@ bool ScreenControl::DisplayScrollMessage(const char* Msg, int16_t X, int16_t Y)
         Scroller* NewScroller = new Scroller();
         m_ScrollMap.insert({Msg, NewScroller});
         It = m_ScrollMap.find(Msg);
-
-        It->second->Height = m_Display->getAscent() - m_Display->getDescent();
-        It->second->Width = m_Display->getUTF8Width(Msg);
     }
 
     CurrentScroller = It->second;
@@ -139,20 +136,22 @@ void ScreenControl::DisplayDate(const tm& TimeInfo)
     m_Display->println(Buffer);
 }
 
-void ScreenControl::DisplayTimeHrMin(const tm& TimeInfo, int16_t X, int16_t Y, bool bFromRightSide)
+void ScreenControl::DisplayTimeHrMin(const tm& TimeInfo, int16_t X, int16_t Y, bool bCalculateX)
 {
     m_Display->setFont(m_WeatherNumFont);
 
     char Buffer[10];
     strftime(Buffer, 10, "%R", &TimeInfo);
 
-    if(bFromRightSide)
+    int16_t PositionX = X;
+
+    if(bCalculateX)
     {
-        int16_t Width = GetUTFWidth(Buffer);
-        X = SCREEN_WIDTH - (Width + X);
+        int16_t TextWidth = GetUTFWidth(Buffer);
+        PositionX = CalculateX(TextWidth, true, true, 64);
     }
 
-    m_Display->setCursor(X, Y);
+    m_Display->setCursor(PositionX, Y);
     m_Display->println(Buffer);
 }
 
@@ -161,27 +160,31 @@ void ScreenControl::DisplayDrawCelcius(int16_t X, int16_t Y)
     //Drawing ASCII degree looks weird
     //Thus we do it manually
 
-    X += 1; //Add slight offset
+    X += 2; //Add slight offset
 
     //draw small circle
     m_Display->setDrawColor(1);
     m_Display->drawPixel(X + 1, Y);  //Top
     m_Display->drawPixel(X + 2, Y);
+    m_Display->drawPixel(X + 3, Y);
 
     m_Display->drawPixel(X, Y + 1);  //Left
     m_Display->drawPixel(X, Y + 2);
+    m_Display->drawPixel(X, Y + 3);
 
-    m_Display->drawPixel(X + 3, Y + 1);  //Right
-    m_Display->drawPixel(X + 3, Y + 2);
+    m_Display->drawPixel(X + 4, Y + 1);  //Right
+    m_Display->drawPixel(X + 4, Y + 2);
+    m_Display->drawPixel(X + 4, Y + 3);
 
-    m_Display->drawPixel(X + 1, Y + 3);  //Bottom
-    m_Display->drawPixel(X + 2, Y + 3);
+    m_Display->drawPixel(X + 1, Y + 4);  //Bottom
+    m_Display->drawPixel(X + 2, Y + 4);
+    m_Display->drawPixel(X + 3, Y + 4);
 
-    m_Display->setCursor(X + 5, Y);
-    m_Display->println("C");
+    m_Display->setFont(m_WeatherAlphFont);
+    m_Display->drawUTF8(X + 7, Y - 1, "C");
 }
 
-void ScreenControl::DisplayTemprature(float Temprature, int16_t X, int16_t Y)
+void ScreenControl::DisplayTemprature(float Temprature, int16_t X, int16_t Y, bool bCalculateX)
 {
     m_Display->setFont(m_WeatherNumFont);
 
@@ -189,15 +192,31 @@ void ScreenControl::DisplayTemprature(float Temprature, int16_t X, int16_t Y)
     Stream << std::fixed << std::setprecision(1) << Temprature;
     std::string TempratureStr = Stream.str();
 
-    m_Display->setCursor(X, Y);
-    m_Display->println(TempratureStr.c_str());
+    int16_t PositionX = X;
+    int16_t NumWidth = GetUTFWidth(TempratureStr);
 
-    int16_t Width = m_Display->getUTF8Width(TempratureStr.c_str());
-    DisplayDrawCelcius(X + Width, Y);
+    if(bCalculateX)
+    {
+        int16_t DegreeWidth, CelciusWidth = 0;
+
+        m_Display->setFont(m_WeatherAlphFont);
+        CelciusWidth = GetUTFWidth("C");
+
+        DegreeWidth = 10;
+
+        PositionX = CalculateX((NumWidth + DegreeWidth + CelciusWidth), true, true, 64);
+    }
+
+    m_Display->setFont(m_WeatherNumFont);
+    m_Display->drawUTF8(PositionX, Y, TempratureStr.c_str());
+
+    m_Display->setFont(m_WeatherAlphFont);
+    DisplayDrawCelcius((PositionX + NumWidth), Y);
 }
 
-bool ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t X, int16_t Y)
+bool ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t X, int16_t Y, bool bCalculateX)
 {
+    m_Display->setFont(m_WeatherAlphFont);
     int16_t CharWidth = GetUTFWidth(WeatherCode);
 
     //Only scroll if the weather code doesn't fit all on screen
@@ -208,7 +227,15 @@ bool ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t X
     else
     {
         m_PreviousScrollText = WeatherCode;
-        m_Display->setCursor(X, Y);
+        int16_t PositionX = X;
+
+        if(bCalculateX)
+        {
+            int16_t TextWidth = GetUTFWidth(WeatherCode.c_str());
+            PositionX = CalculateX(TextWidth, true, true, 64);
+        }
+
+        m_Display->setCursor(PositionX, Y);
         m_Display->println(WeatherCode.c_str());
     }
 
@@ -228,6 +255,23 @@ void ScreenControl::ResetFont()
 void ScreenControl::SetContrast(uint8_t Contrast)
 {
     m_Display->setContrast(Contrast);
+}
+
+int16_t ScreenControl::CalculateX(int16_t TextWidth, bool bRightSide, bool bCenter, int16_t ClampCenter)
+{
+    int16_t OffsetX = 0;
+    if(bCenter)
+    {
+        int16_t RemainingWidth = (SCREEN_WIDTH - ClampCenter) - TextWidth;
+        OffsetX = RemainingWidth / 2;
+    }
+
+    if(bRightSide)
+    {
+        OffsetX = SCREEN_WIDTH - (TextWidth + OffsetX);
+    }
+
+    return OffsetX;
 }
 
 int16_t ScreenControl::GetUTFWidth(const std::string& String)

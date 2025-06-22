@@ -145,6 +145,7 @@ void loop() {
     time_control->Tick();
 
     screen_control->DisplayClearScreen();
+    screen_control->ResetFont();
 
     //Turn screen off between 00:00 and 06:00, we (I) dont care about the weather at that time.
     if((time_control->GetCurrentTimeStruct().tm_hour >= 0) &&
@@ -208,18 +209,15 @@ void loop() {
 
         WeatherCode = network_control->GetWeatherCode(HourlyIndex);
 
-        screen_control->ResetFont();
         int16_t CharWidth = screen_control->GetUTFWidth(WeatherMap[WeatherCode].c_str());
         bShouldScroll = (CharWidth > screen_control->GetMaxTextWidth());
 
         screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
         screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
 
-        screen_control->DisplayTimeHrMin(network_control->GetTime(HourlyIndex), 64, 16, false);
-        screen_control->DisplayTemprature(network_control->GetTemprature(HourlyIndex), 64, 32);
+        screen_control->DisplayTimeHrMin(network_control->GetTime(HourlyIndex), 64, 16, true);
+        screen_control->DisplayTemprature(network_control->GetTemprature(HourlyIndex), 64, 32, true);
         screen_control->DisplayWeatherIcon(WeatherIconMap[WeatherCode]);
-
-        screen_control->ResetFont();
 
         //Display up to 6 hours of weather data
         HourlyIndex++;
@@ -230,7 +228,7 @@ void loop() {
 
         if(!bShouldScroll)
         {
-            bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48);
+            bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48, true);
         }
 
         screen_control->Display();
@@ -238,7 +236,7 @@ void loop() {
 
     if(bShouldScroll)
     {
-        bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48);
+        bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48, true);
         screen_control->DisplayArea(8, 6, 8, 2);
 
         if(bHasReachedScrollEnd)
