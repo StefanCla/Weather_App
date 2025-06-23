@@ -50,7 +50,7 @@ private:
 
     const uint8_t* m_WeatherNumFont = u8g2_font_courB10_tn;
     const uint8_t* m_WeatherAlphFont = u8g2_font_BBSesque_tr;
-    const uint8_t* m_DefaultFont = u8g2_font_prospero_bold_nbp_tf;//u8g2_font_helvB08_tf;
+    const uint8_t* m_DefaultFont = u8g2_font_prospero_bold_nbp_tf;
 
     const int16_t m_MaxTextWidth = 64;
     std::map<const char*, Scroller*> m_ScrollMap;

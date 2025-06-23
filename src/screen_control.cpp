@@ -248,7 +248,7 @@ bool ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t X
 
 void ScreenControl::DisplayWeatherIcon(const unsigned char* WeatherIcon)
 {
-    m_Display->drawBitmap(0, 16, 6, 48, WeatherIcon);
+    m_Display->drawBitmap(0, 16, 8, 48, WeatherIcon);
 }
 
 void ScreenControl::ResetFont()

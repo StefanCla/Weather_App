@@ -64,7 +64,7 @@ bool bHasReachedScrollEnd = false;
 //********************************/
 
 
-//WMO - Sky Type
+//WMO - Weather Type
 void SetupWeatherMap()
 {
     WeatherMap.insert({0, "Clear Sky"});
@@ -97,15 +97,37 @@ void SetupWeatherMap()
     WeatherMap.insert({99, "Thunderstorm with Heavy Hail"});
 }
 
-void SetupWeahterIconMap()
+//WMO - Weather Icon
+void SetupWeatherIconMap()
 {
-    WeatherIconMap.insert({0, weather_icon_sun});
+    WeatherIconMap.insert({0, weather_icon_clear_sky});
     WeatherIconMap.insert({1, weather_icon_mainly_clear});
-    WeatherIconMap.insert({2, weather_icon_partially_cloudy});
+    WeatherIconMap.insert({2, weather_icon_partly_cloudy});
     WeatherIconMap.insert({3, weather_icon_overcast});
-    WeatherIconMap.insert({51, weather_icon_drizzle});
-    WeatherIconMap.insert({61, weather_icon_light_rain});
+    WeatherIconMap.insert({45, weather_icon_fog});
+    WeatherIconMap.insert({48, weather_icon_fog});  //Use fog for Rime fog as I have no clue what a Rime fog icons would look like
+    WeatherIconMap.insert({51, weather_icon_slight_drizzle});
+    WeatherIconMap.insert({53, weather_icon_moderate_drizzle});
+    WeatherIconMap.insert({55, weather_icon_heavy_drizzle});
+    WeatherIconMap.insert({56, weather_icon_light_freezing_drizzle});
+    WeatherIconMap.insert({57, weather_icon_dense_freezing_drizzle});
+    WeatherIconMap.insert({61, weather_icon_slight_rain});
+    WeatherIconMap.insert({63, weather_icon_moderate_rain});
     WeatherIconMap.insert({65, weather_icon_heavy_rain});
+    WeatherIconMap.insert({66, weather_icon_light_freezing_rain});
+    WeatherIconMap.insert({67, weather_icon_heavy_freezing_rain});
+    WeatherIconMap.insert({71, weather_icon_slight_snow_fall});
+    WeatherIconMap.insert({73, weather_icon_moderate_snow_fall});
+    WeatherIconMap.insert({75, weather_icon_heavy_snow_fall});
+    WeatherIconMap.insert({77, weather_icon_snow_grains});
+    WeatherIconMap.insert({80, weather_icon_slight_rain_shower});
+    WeatherIconMap.insert({81, weather_icon_moderate_rain_shower});
+    WeatherIconMap.insert({82, weather_icon_heavy_rain_shower});
+    WeatherIconMap.insert({85, weather_icon_slight_snow_shower});
+    WeatherIconMap.insert({86, weather_icon_heavy_snow_shower});
+    WeatherIconMap.insert({95, weather_icon_thunderstorm});
+    WeatherIconMap.insert({96, weather_icon_thunderstorm_slight_hail});
+    WeatherIconMap.insert({99, weather_icon_thunderstorm_heavy_hail});
 }
 
 void setup() {
@@ -114,7 +136,7 @@ void setup() {
     time_control = new TimeControl(network_control);
 
     SetupWeatherMap();
-    SetupWeahterIconMap();
+    SetupWeatherIconMap();
 
     screen_control->DisplayMessage("Connecting to WiFi..", 0, 0);
     screen_control->Display();
