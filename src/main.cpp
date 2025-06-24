@@ -48,9 +48,6 @@ bool bHasReachedScrollEnd = false;
 //  This is on purpose, as all data constructed isn't getting deleted until we exit the program.
 //  Which it never does, as the ESP32 goes on infinite-loop after it has been setup regardless.
 //  + I was being lazy for this project :)
-//
-//  From a quick search, it seems that `std::this_thread::sleep_for()` doesn't work accurately on a ESP32,
-//  Hence why delays are used instead.
 // 
 //  Check: https://github.com/StefanCla/Weather_App to see pictures of what this program looks like when running.
 //
@@ -58,7 +55,9 @@ bool bHasReachedScrollEnd = false;
 //  https://open-meteo.com/ was used to obtain weather data.
 //  https://www.ntppool.org/en/ was used to obtain the current NTP time.
 //  ArduinoJson by Benoit Blanchon was used to deserialize the weather data.
-//  u82g by olikraus was used to get the display up & running
+//  u82g by olikraus was used to get the display up & running.
+//  Aseprite was used to create the weather icons.
+//  https://javl.github.io/image2cpp/ was used to convert weather icons to bitmaps.
 //
 //********************************/
 
@@ -70,7 +69,7 @@ void SetupWeatherDataMap()
     WeatherDataMap.insert({2, {"Partly Cloudy", weather_icon_partly_cloudy}});
     WeatherDataMap.insert({3, {"Overcast", weather_icon_overcast}});
     WeatherDataMap.insert({45, {"Fog", weather_icon_fog}});
-    WeatherDataMap.insert({48, {"Rime Fog", weather_icon_fog}});  //Use fog for Rime fog as I have no clue what a Rime fog icons would look like
+    WeatherDataMap.insert({48, {"Rime Fog", weather_icon_fog}});  //Same icon as fog on purpose
     WeatherDataMap.insert({51, {"Light Drizzle", weather_icon_slight_drizzle}});
     WeatherDataMap.insert({53, {"Moderate Drizzle", weather_icon_moderate_drizzle}});
     WeatherDataMap.insert({55, {"Dense Drizzle", weather_icon_heavy_drizzle}});
