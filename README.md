@@ -18,12 +18,12 @@ To use the project yourself:
 # Credits
 The weather information has been obtained thanks to the [Open-meteo API](https://open-meteo.com).
 The NTP time has been obtained thanks to the [NTP Pool Project](https://www.ntppool.org/en/).
+The weather icons have been made using [Aseprite](https://store.steampowered.com/app/431730/Aseprite/)
+The bitmaps of the weather icons were made using [image2cpp](https://javl.github.io/image2cpp/)
 
 ## Dependencies
 The project currently uses the following dependecies:
-- Adafruit BusIO by Adafruit
-- Adafruit GFX Library by Adafruit
-- Adafruit SSD1306 by Adafruit
+- u8g2 by Olikraus
 - ArduinoJson by Benoit Blanchon
 
 The project has been setup using [PlatformIO](https://platformio.org/) on [Visual Studio Code](https://code.visualstudio.com/).

@@ -55,7 +55,7 @@ bool bHasReachedScrollEnd = false;
 //  https://open-meteo.com/ was used to obtain weather data.
 //  https://www.ntppool.org/en/ was used to obtain the current NTP time.
 //  ArduinoJson by Benoit Blanchon was used to deserialize the weather data.
-//  u82g by olikraus was used to get the display up & running.
+//  u8g2 by olikraus was used to get the display up & running.
 //  Aseprite was used to create the weather icons.
 //  https://javl.github.io/image2cpp/ was used to convert weather icons to bitmaps.
 //
