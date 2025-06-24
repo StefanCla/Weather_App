@@ -12,8 +12,7 @@ ScreenControl* screen_control = nullptr;
 TimeControl* time_control = nullptr;
 NetworkControl* network_control = nullptr;
 
-std::map<int, std::string> WeatherMap;
-std::map<int, const unsigned char*> WeatherIconMap;
+std::map<int, std::pair<std::string, const unsigned char*>> WeatherDataMap;
 
 int HourlyIndex = 0;
 int WeatherCode = 0;
@@ -63,80 +62,45 @@ bool bHasReachedScrollEnd = false;
 //
 //********************************/
 
-
-//WMO - Weather Type
-void SetupWeatherMap()
+//WMO - Weather Type / Weather Icon
+void SetupWeatherDataMap()
 {
-    WeatherMap.insert({0, "Clear Sky"});
-    WeatherMap.insert({1, "Mainly Clear"});
-    WeatherMap.insert({2, "Partly Cloudy"});
-    WeatherMap.insert({3, "Overcast"});
-    WeatherMap.insert({45, "Fog"});
-    WeatherMap.insert({48, "Rime Fog"});
-    WeatherMap.insert({51, "Light Drizzle"});
-    WeatherMap.insert({53, "Moderate Drizzle"});
-    WeatherMap.insert({55, "Dense Drizzle"});
-    WeatherMap.insert({56, "Light Freezing Drizzle"});
-    WeatherMap.insert({57, "Dense Freezing Drizzle"});
-    WeatherMap.insert({61, "Slight Rain"});
-    WeatherMap.insert({63, "Moderate Rain"});
-    WeatherMap.insert({65, "Heavy Rain"});
-    WeatherMap.insert({66, "Light Freezing Rain"});
-    WeatherMap.insert({67, "Heavy Freezing Rain"});
-    WeatherMap.insert({71, "Slight Snow Fall"});
-    WeatherMap.insert({73, "Moderate Snow Fall"});
-    WeatherMap.insert({75, "Heavy Snow Fall"});
-    WeatherMap.insert({77, "Snow Grains"});
-    WeatherMap.insert({80, "Slight Rain Showers"});
-    WeatherMap.insert({81, "Moderate Rain Showers"});
-    WeatherMap.insert({82, "Heavy Rain Showers"});
-    WeatherMap.insert({85, "Slight Snow Showers"});
-    WeatherMap.insert({86, "Heavy Snow Showers"});
-    WeatherMap.insert({95, "Thunderstorm"});
-    WeatherMap.insert({96, "Thunderstorm with Slight Hail"});
-    WeatherMap.insert({99, "Thunderstorm with Heavy Hail"});
-}
-
-//WMO - Weather Icon
-void SetupWeatherIconMap()
-{
-    WeatherIconMap.insert({0, weather_icon_clear_sky});
-    WeatherIconMap.insert({1, weather_icon_mainly_clear});
-    WeatherIconMap.insert({2, weather_icon_partly_cloudy});
-    WeatherIconMap.insert({3, weather_icon_overcast});
-    WeatherIconMap.insert({45, weather_icon_fog});
-    WeatherIconMap.insert({48, weather_icon_fog});  //Use fog for Rime fog as I have no clue what a Rime fog icons would look like
-    WeatherIconMap.insert({51, weather_icon_slight_drizzle});
-    WeatherIconMap.insert({53, weather_icon_moderate_drizzle});
-    WeatherIconMap.insert({55, weather_icon_heavy_drizzle});
-    WeatherIconMap.insert({56, weather_icon_light_freezing_drizzle});
-    WeatherIconMap.insert({57, weather_icon_dense_freezing_drizzle});
-    WeatherIconMap.insert({61, weather_icon_slight_rain});
-    WeatherIconMap.insert({63, weather_icon_moderate_rain});
-    WeatherIconMap.insert({65, weather_icon_heavy_rain});
-    WeatherIconMap.insert({66, weather_icon_light_freezing_rain});
-    WeatherIconMap.insert({67, weather_icon_heavy_freezing_rain});
-    WeatherIconMap.insert({71, weather_icon_slight_snow_fall});
-    WeatherIconMap.insert({73, weather_icon_moderate_snow_fall});
-    WeatherIconMap.insert({75, weather_icon_heavy_snow_fall});
-    WeatherIconMap.insert({77, weather_icon_snow_grains});
-    WeatherIconMap.insert({80, weather_icon_slight_rain_shower});
-    WeatherIconMap.insert({81, weather_icon_moderate_rain_shower});
-    WeatherIconMap.insert({82, weather_icon_heavy_rain_shower});
-    WeatherIconMap.insert({85, weather_icon_slight_snow_shower});
-    WeatherIconMap.insert({86, weather_icon_heavy_snow_shower});
-    WeatherIconMap.insert({95, weather_icon_thunderstorm});
-    WeatherIconMap.insert({96, weather_icon_thunderstorm_slight_hail});
-    WeatherIconMap.insert({99, weather_icon_thunderstorm_heavy_hail});
+    WeatherDataMap.insert({0, {"Clear Sky", weather_icon_clear_sky }});
+    WeatherDataMap.insert({1, {"Mainly Clear", weather_icon_mainly_clear}});
+    WeatherDataMap.insert({2, {"Partly Cloudy", weather_icon_partly_cloudy}});
+    WeatherDataMap.insert({3, {"Overcast", weather_icon_overcast}});
+    WeatherDataMap.insert({45, {"Fog", weather_icon_fog}});
+    WeatherDataMap.insert({48, {"Rime Fog", weather_icon_fog}});  //Use fog for Rime fog as I have no clue what a Rime fog icons would look like
+    WeatherDataMap.insert({51, {"Light Drizzle", weather_icon_slight_drizzle}});
+    WeatherDataMap.insert({53, {"Moderate Drizzle", weather_icon_moderate_drizzle}});
+    WeatherDataMap.insert({55, {"Dense Drizzle", weather_icon_heavy_drizzle}});
+    WeatherDataMap.insert({56, {"Light Freezing Drizzle", weather_icon_light_freezing_drizzle}});
+    WeatherDataMap.insert({57, {"Dense Freezing Drizzle", weather_icon_dense_freezing_drizzle}});
+    WeatherDataMap.insert({61, {"Slight Rain", weather_icon_slight_rain}});
+    WeatherDataMap.insert({63, {"Moderate Rain", weather_icon_moderate_rain}});
+    WeatherDataMap.insert({65, {"Heavy Rain", weather_icon_heavy_rain}});
+    WeatherDataMap.insert({66, {"Light Freezing Rain", weather_icon_light_freezing_rain}});
+    WeatherDataMap.insert({67, {"Heavy Freezing Rain", weather_icon_heavy_freezing_rain}});
+    WeatherDataMap.insert({71, {"Slight Snow Fall", weather_icon_slight_snow_fall}});
+    WeatherDataMap.insert({73, {"Moderate Snow Fall", weather_icon_moderate_snow_fall}});
+    WeatherDataMap.insert({75, {"Heavy Snow Fall", weather_icon_heavy_snow_fall}});
+    WeatherDataMap.insert({77, {"Snow Grains", weather_icon_snow_grains}});
+    WeatherDataMap.insert({80, {"Slight Rain Showers", weather_icon_slight_rain_shower}});
+    WeatherDataMap.insert({81, {"Moderate Rain Showers", weather_icon_moderate_rain_shower}});
+    WeatherDataMap.insert({82, {"Heavy Rain Showers", weather_icon_heavy_rain_shower}});
+    WeatherDataMap.insert({85, {"Slight Snow Showers", weather_icon_slight_snow_shower}});
+    WeatherDataMap.insert({86, {"Heavy Snow Showers", weather_icon_heavy_snow_shower}});
+    WeatherDataMap.insert({95, {"Thunderstorm", weather_icon_thunderstorm}});
+    WeatherDataMap.insert({96, {"Thunderstorm with Slight Hail", weather_icon_thunderstorm_slight_hail}});
+    WeatherDataMap.insert({99, {"Thunderstorm with Heavy Hail", weather_icon_thunderstorm_heavy_hail}});
 }
 
 void setup() {
     screen_control = new ScreenControl();
     network_control = new NetworkControl();
     time_control = new TimeControl(network_control);
-
-    SetupWeatherMap();
-    SetupWeatherIconMap();
+    
+    SetupWeatherDataMap();
 
     screen_control->DisplayMessage("Connecting to WiFi..", 0, 0);
     screen_control->Display();
@@ -225,21 +189,21 @@ void loop() {
         return;
     }
 
-    if((time_control->GetCurrentTime() > time_control->GetNext10Sec()))
+    if((time_control->GetCurrentTime() > time_control->GetNextTenSeconds()))
     {
-        time_control->CalculateNext10Sec();
+        time_control->CalculateNextTenSeconds();
 
         WeatherCode = network_control->GetWeatherCode(HourlyIndex);
 
-        int16_t CharWidth = screen_control->GetUTFWidth(WeatherMap[WeatherCode].c_str());
+        int16_t CharWidth = screen_control->GetUTFWidth(WeatherDataMap[WeatherCode].first.c_str());
         bShouldScroll = (CharWidth > screen_control->GetMaxTextWidth());
 
-        screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct());
-        screen_control->DisplayDate(time_control->GetCurrentTimeStruct());
+        screen_control->DisplayWeekDay(time_control->GetCurrentTimeStruct(), 0, 0, false);
+        screen_control->DisplayDate(time_control->GetCurrentTimeStruct(), 0, 0, true);
 
         screen_control->DisplayTimeHrMin(network_control->GetTime(HourlyIndex), 64, 16, true);
         screen_control->DisplayTemprature(network_control->GetTemprature(HourlyIndex), 64, 32, true);
-        screen_control->DisplayWeatherIcon(WeatherIconMap[WeatherCode]);
+        screen_control->DisplayWeatherIcon(WeatherDataMap[WeatherCode].second, 0, 16);
 
         //Display up to 6 hours of weather data
         HourlyIndex++;
@@ -250,7 +214,7 @@ void loop() {
 
         if(!bShouldScroll)
         {
-            bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48, true);
+            bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherDataMap[WeatherCode].first.c_str(), 64, 48, true);
         }
 
         screen_control->Display();
@@ -258,7 +222,7 @@ void loop() {
 
     if(bShouldScroll)
     {
-        bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherMap[WeatherCode].c_str(), 64, 48, true);
+        bHasReachedScrollEnd = screen_control->DisplayWeatherCode(WeatherDataMap[WeatherCode].first.c_str(), 64, 48, true);
         screen_control->DisplayArea(8, 6, 8, 2);
 
         if(bHasReachedScrollEnd)

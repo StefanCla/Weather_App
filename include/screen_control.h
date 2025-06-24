@@ -7,12 +7,6 @@
 #define SCREEN_WIDTH 128  // OLED display width, in pixels
 #define SCREEN_HEIGHT 64  // OLED display height, in pixels
 
-struct Scroller
-{
-    bool bDirection = false; //True = ->, False = <-
-    int16_t ScrollOffsetX = 0;
-};
-
 class ScreenControl
 {
 public:
@@ -26,14 +20,13 @@ public:
     void DisplayMessage(const char* Msg, int16_t X, int16_t Y);
     bool DisplayScrollMessage(const char* Msg, int16_t X, int16_t Y);
 
-    void DisplayWeekDay(const tm& TimeInfo);
-    void DisplayDate(const tm& TimeInfo);
+    void DisplayWeekDay(const tm& TimeInfo, int16_t X, int16_t Y, bool bCalculateX);
+    void DisplayDate(const tm& TimeInfo, int16_t X, int16_t Y, bool bCalculateX);
     void DisplayTimeHrMin(const tm& TimeInfo, int16_t X, int16_t Y, bool bCalculateX);
 
-    void DisplayDrawCelcius(int16_t X, int16_t Y);
     void DisplayTemprature(float Temprature, int16_t X, int16_t Y, bool bCalculateX);
     bool DisplayWeatherCode(const std::string& WeatherCode, int16_t X, int16_t Y, bool bCalculateX);
-    void DisplayWeatherIcon(const unsigned char* WeatherIcon);
+    void DisplayWeatherIcon(const unsigned char* WeatherIcon, int16_t X, int16_t Y);
     
     void ResetFont();
     void SetContrast(uint8_t Contrast);
@@ -46,13 +39,18 @@ public:
     int16_t GetUTFWidth(const std::string& String);
 
 private:
+    void DisplayDrawCelcius(int16_t X, int16_t Y);
+
+private:
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C* m_Display = nullptr;
 
     const uint8_t* m_WeatherNumFont = u8g2_font_courB10_tn;
     const uint8_t* m_WeatherAlphFont = u8g2_font_BBSesque_tr;
     const uint8_t* m_DefaultFont = u8g2_font_prospero_bold_nbp_tf;
 
-    const int16_t m_MaxTextWidth = 64;
-    std::map<const char*, Scroller*> m_ScrollMap;
+    const int16_t m_MaxTextWidth = 64; //Half screen size
+
+    bool m_bDirection = false; //True = ->, False = <-
+    int16_t m_ScrollOffsetX = 0;
     std::string m_PreviousScrollText = "";
 };

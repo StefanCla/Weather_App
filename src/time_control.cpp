@@ -11,22 +11,22 @@ TimeControl::TimeControl(NetworkControl* Network)
     m_QuarterTime = new time_t();
     m_QuarterTimeStruct = new tm();
 
-    m_Next10Sec = new time_t();
+    m_NextTenSeconds = new time_t();
 
     CorrectTime();
 
     *m_QuarterTime = *m_CurrentTime;
     *m_QuarterTimeStruct = *m_CurrentTimeStruct;
 
-    *m_Next10Sec = *m_CurrentTime;
+    *m_NextTenSeconds = *m_CurrentTime;
 
-    CalculateNext10Sec();
+    CalculateNextTenSeconds();
     CalculateNextQuarter();
 }
 
 TimeControl::~TimeControl()
 {
-    delete m_Next10Sec;
+    delete m_NextTenSeconds;
 
     delete m_QuarterTimeStruct;
     delete m_QuarterTime;
@@ -41,9 +41,9 @@ void TimeControl::Tick()
     *m_CurrentTimeStruct = *localtime(m_CurrentTime);
 }
 
-void TimeControl::CalculateNext10Sec()
+void TimeControl::CalculateNextTenSeconds()
 {
-    *m_Next10Sec = *m_CurrentTime + 10;
+    *m_NextTenSeconds = *m_CurrentTime + 10;
 }
 
 void TimeControl::CalculateNextQuarter()
@@ -66,9 +66,9 @@ void TimeControl::CalculateNextQuarter()
       MinRemaining = 15;
     }
 
-    m_TimeSec = (MinRemaining * Seconds) - m_CurrentTimeStruct->tm_sec;
+    int SecondsTillQuarter = (MinRemaining * Seconds) - m_CurrentTimeStruct->tm_sec;
 
-    *m_QuarterTime = *m_CurrentTime + m_TimeSec;
+    *m_QuarterTime = *m_CurrentTime + SecondsTillQuarter;
     *m_QuarterTimeStruct = *localtime(m_QuarterTime);
 }
 

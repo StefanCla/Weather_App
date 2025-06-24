@@ -7,7 +7,8 @@ ScreenControl::ScreenControl()
 {
     m_Display = new U8G2_SSD1306_128X64_NONAME_F_HW_I2C (U8G2_R0, U8X8_PIN_NONE, SCL, SDA);
 
-    m_Display->setBusClock(8000000); //Not sure if this actually makes a difference, but placebo is powerful.
+    //I don't think my screen can accept this high bus clock, but it still works fine and I believe there is less screen tearing.
+    m_Display->setBusClock(8000000);
     m_Display->begin();
 
     DisplayClearScreen();
@@ -23,12 +24,6 @@ ScreenControl::ScreenControl()
 
 ScreenControl::~ScreenControl()
 {
-    std::map<const char*, Scroller*>::iterator It;
-    for(It = m_ScrollMap.begin(); It != m_ScrollMap.end(); ++It)
-    {
-        delete It->second;
-    }
-    
     delete m_Display;
 }
 
@@ -57,56 +52,44 @@ bool ScreenControl::DisplayScrollMessage(const char* Msg, int16_t X, int16_t Y)
 {
     bool bHasReachedEnd = false;
 
-    int16_t SizeDiff = GetUTFWidth(Msg) - m_MaxTextWidth;
-
-    std::map<const char*, Scroller*>::iterator It;
-    Scroller* CurrentScroller = nullptr;
-
-    It = m_ScrollMap.find(Msg);
-    if(It == m_ScrollMap.end())
-    {
-        //Add new entry if we can't find any
-        Scroller* NewScroller = new Scroller();
-        m_ScrollMap.insert({Msg, NewScroller});
-        It = m_ScrollMap.find(Msg);
-    }
-
-    CurrentScroller = It->second;
-
     //Clips screen
     m_Display->setClipWindow(64, 48, 128, 64);  //bottom right corner
 
-    if(CurrentScroller->bDirection)
+    //Reset offset on first display, and set bHasReachedEnd true to avoid immediate start of scrolling.
+    std::string CurrentScrollText = Msg;
+    if(m_PreviousScrollText != CurrentScrollText)
     {
-        CurrentScroller->ScrollOffsetX += 1;
+        m_PreviousScrollText = CurrentScrollText;
+        m_bDirection = false;
+        m_ScrollOffsetX = 0;
+        bHasReachedEnd = true;
     }
     else
     {
-        CurrentScroller->ScrollOffsetX  -= 1;
+        int16_t SizeDiff = GetUTFWidth(Msg) - m_MaxTextWidth;
+
+        if(m_bDirection)
+        {
+            m_ScrollOffsetX += 1;
+        }
+        else
+        {
+            m_ScrollOffsetX  -= 1;
+        }
+
+        if(m_ScrollOffsetX > 0)
+        {
+            m_bDirection = false;
+            bHasReachedEnd = true;
+        }
+        else if (m_ScrollOffsetX < -SizeDiff)
+        {
+            m_bDirection = true;
+            bHasReachedEnd = true;
+        }
     }
 
-    if((CurrentScroller->ScrollOffsetX) > 0)
-    {
-        CurrentScroller->bDirection = false;
-        bHasReachedEnd = true;
-    }
-    else if ((CurrentScroller->ScrollOffsetX) < -SizeDiff)
-    {
-        CurrentScroller->bDirection = true;
-        bHasReachedEnd = true;
-    }
-
-    //Reset offset on first display, and set bHasReachedEnd true to avoid immediate start of scrolling.
-    std::string CurrentScrollText = Msg;
-    if((m_PreviousScrollText.empty()) || (m_PreviousScrollText != CurrentScrollText))
-    {
-        m_PreviousScrollText = CurrentScrollText;
-        It->second->bDirection = false;
-        It->second->ScrollOffsetX = 0;
-        bHasReachedEnd = true;
-    }
-
-    m_Display->drawUTF8(X + CurrentScroller->ScrollOffsetX, Y, Msg);
+    m_Display->drawUTF8(X + m_ScrollOffsetX, Y, Msg);
 
     //Reset clipped screen
     m_Display->setMaxClipWindow();
@@ -114,29 +97,41 @@ bool ScreenControl::DisplayScrollMessage(const char* Msg, int16_t X, int16_t Y)
     return bHasReachedEnd;
 }
 
-void ScreenControl::DisplayWeekDay(const tm& TimeInfo)
+void ScreenControl::DisplayWeekDay(const tm& TimeInfo, int16_t X, int16_t Y, bool bCalculateX)
 {
     m_Display->setFont(m_WeatherAlphFont);
 
-    m_Display->setCursor(0, 0);
-
     char Buffer[10];
     strftime(Buffer, 10, "%A", &TimeInfo);
+
+    int16_t PositionX = X;
+
+    if(bCalculateX)
+    {
+        int16_t TextWidth = GetUTFWidth(Buffer);
+        PositionX = CalculateX(TextWidth, true, false, 0);
+    }
+
+    m_Display->setCursor(PositionX, Y);
     m_Display->println(Buffer);
 }
 
-void ScreenControl::DisplayDate(const tm& TimeInfo)
+void ScreenControl::DisplayDate(const tm& TimeInfo, int16_t X, int16_t Y, bool bCalculateX)
 {
     m_Display->setFont(m_WeatherAlphFont);
 
     char Buffer[10];
     strftime(Buffer, 10, "%e-%b-%y", &TimeInfo);
 
-    int16_t Width = GetUTFWidth(Buffer);
+    int16_t PositionX = X;
 
-    int OffsetX = SCREEN_WIDTH - Width;
+    if(bCalculateX)
+    {
+        int16_t TextWidth = GetUTFWidth(Buffer);
+        PositionX = CalculateX(TextWidth, true, false, 0);
+    }
     
-    m_Display->setCursor(OffsetX, 0);
+    m_Display->setCursor(PositionX, Y);
     m_Display->println(Buffer);
 }
 
@@ -246,9 +241,10 @@ bool ScreenControl::DisplayWeatherCode(const std::string& WeatherCode, int16_t X
     return false;
 }
 
-void ScreenControl::DisplayWeatherIcon(const unsigned char* WeatherIcon)
+void ScreenControl::DisplayWeatherIcon(const unsigned char* WeatherIcon, int16_t X, int16_t Y)
 {
-    m_Display->drawBitmap(0, 16, 8, 48, WeatherIcon);
+    //All icons are 64x48 in size
+    m_Display->drawBitmap(X, Y, 8, 48, WeatherIcon);
 }
 
 void ScreenControl::ResetFont()

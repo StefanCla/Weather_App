@@ -3,8 +3,6 @@
 
 NetworkControl::NetworkControl()
 {
-    Serial.begin(115200);   //Not 100% if this is needed
-
     m_TimeStruct = new tm();
     m_JSON = new String("{}");
 }
