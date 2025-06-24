@@ -1,7 +1,11 @@
 # Weather_App
 
-A small application for the ESP32 HW-394 that utilizes a 128x64 SSD1306 OLED screen.
-The application displays the current date & weather information.
+A small application for the ESP32 HW-394 that utilizes a 128x64 SSD1306 OLED screen.<br>
+The application displays the current date & weather information.<br>
+
+Example of the weather app running on a ESP32.<br>
+(Note that due to the brightness of the screen, the rest of the image has been darkened).<br>
+<img src="data/github_images/partly_cloudy.jpg" alt="Weather App Running Example" width="500"/>
 
 # Usage
 To use the project yourself:
@@ -16,10 +20,10 @@ To use the project yourself:
 - Upload the project to the ESP32. 
 
 # Credits
-The weather information has been obtained thanks to the [Open-meteo API](https://open-meteo.com).
-The NTP time has been obtained thanks to the [NTP Pool Project](https://www.ntppool.org/en/).
-The weather icons have been made using [Aseprite](https://store.steampowered.com/app/431730/Aseprite/)
-The bitmaps of the weather icons were made using [image2cpp](https://javl.github.io/image2cpp/)
+The weather information has been obtained thanks to the [Open-meteo API](https://open-meteo.com).<br>
+The NTP time has been obtained thanks to the [NTP Pool Project](https://www.ntppool.org/en/).<br>
+The weather icons have been made using [Aseprite](https://store.steampowered.com/app/431730/Aseprite/).<br>
+The bitmaps of the weather icons were made using [image2cpp](https://javl.github.io/image2cpp/).<br>
 
 ## Dependencies
 The project currently uses the following dependecies:
@@ -27,6 +31,3 @@ The project currently uses the following dependecies:
 - ArduinoJson by Benoit Blanchon
 
 The project has been setup using [PlatformIO](https://platformio.org/) on [Visual Studio Code](https://code.visualstudio.com/).
-
-
-
